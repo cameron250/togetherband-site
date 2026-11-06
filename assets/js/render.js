@@ -134,7 +134,7 @@
   function metalDefs(id, v) {
     const f = FINISHES[v.finish] || FINISHES.polished;
     let stops = f.stops;
-    if (!stops) { const m = v.finish === 'painted' ? (v.rope || '#C41A2E') : (v.metal || '#2457C5'); stops = [tint(m, 0.45), m, tint(m, 0.25), shade(m, 0.45)]; }
+    if (!stops) { const m = v.finish === 'painted' ? (v.paint || v.rope || '#C41A2E') : (v.metal || '#2457C5'); stops = [tint(m, 0.45), m, tint(m, 0.25), shade(m, 0.45)]; }
     const s = stops.map((c, i) => `<stop offset="${(i / (stops.length - 1)).toFixed(2)}" stop-color="${c}"/>`).join('');
     return `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">${s}</linearGradient>`;
   }
@@ -161,14 +161,14 @@
   function photoSpec(v) {
     const style = v.style === 'braided' ? 'classic' : v.style;
     if (style === 'heart') {
-      if (v.finish === 'painted') return { key: 'heart', clasp: v.rope || '#C41A2E' };
+      if (v.finish === 'painted') return { key: 'heart', clasp: v.paint || v.rope || '#C41A2E' };
       return { key: 'heart', clasp: v.finish === 'metallic' ? (v.metal || '#2457C5') : v.finish === 'rainbow' ? 'rainbow' : (CLASP_TINT[v.finish] || CLASP_TINT.polished) };
     }
     const gold = v.finish === 'gold';
     const key = `${style === 'mini' ? 'mini' : 'classic'}-${gold ? 'gold' : 'polished'}`;
     let clasp = '';
     if (v.finish === 'metallic') clasp = v.metal || '#2457C5';
-    else if (v.finish === 'painted') clasp = v.rope || '#C41A2E';
+    else if (v.finish === 'painted') clasp = v.paint || v.rope || '#C41A2E';
     else if (v.finish === 'rainbow') clasp = 'rainbow';
     else if (v.finish === 'rose' || v.finish === 'onyx') clasp = CLASP_TINT[v.finish];
     return { key, clasp };
@@ -290,7 +290,7 @@
     const id = `${s.key}|${String(v.rope).toLowerCase()}|${s.clasp}`;
     const done = photoCache[id] && photoCache[id].url;
     const [w, h] = SIZES[s.key];
-    const data = esc(JSON.stringify({ style: v.style, rope: v.rope, finish: v.finish, metal: v.metal }));
+    const data = esc(JSON.stringify({ style: v.style, rope: v.rope, finish: v.finish, metal: v.metal, paint: v.paint }));
     return `<img class="band band-photo${done ? ' ready' : ''}" width="${w}" height="${h}" alt="${esc(variantName(v))} #TOGETHERBAND" src="${done || BLANK}"${done ? '' : ` data-band="${data}"`}>`;
   }
 

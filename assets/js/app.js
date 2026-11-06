@@ -16,7 +16,10 @@
   let deckList = [];
 
   function withExtras(list) {
-    (TB.extraSamples || []).forEach(x => { if (!list.some(p => p.id === x.id)) list.unshift(TB.newProject(x)); });
+    (TB.extraSamples || []).forEach(x => {
+      if (x.replaces) list = list.filter(p => p.id !== x.replaces);
+      if (!list.some(p => p.id === x.id)) list.unshift(TB.newProject(x));
+    });
     return list;
   }
   function load() { return withExtras(loadStored()); }
@@ -217,6 +220,8 @@
               <label class="sw-custom" title="Custom colour"><input type="color" data-v="rope" value="${v.rope}" aria-label="Custom cord colour"></label></div>
           </div>
           <div class="f"><label for="v-cn-${i}">Colour name in titles (optional)</label><input id="v-cn-${i}" type="text" data-v="colorName" value="${R.esc(v.colorName || '')}" placeholder="e.g. Gold"></div>
+          ${v.finish === 'painted' ? `<div class="f"><label for="v-paint-${i}">Paint colour</label><div class="color-in"><input id="v-paint-${i}" type="color" data-v="paint" value="${v.paint || v.rope}"></div>
+            <button type="button" class="linkbtn" data-vact="matchpaint"${v.paint ? '' : ' disabled'}>${v.paint ? 'Match cord colour' : 'Matches cord colour'}</button></div>` : ''}
           ${v.finish === 'metallic' ? `<div class="f"><label for="v-metal-${i}">Metallic clasp colour</label><div class="color-in"><input id="v-metal-${i}" type="color" data-v="metal" value="${v.metal}"></div></div>` : ''}
           <div class="var-act">
             <button type="button" class="linkbtn" data-vact="up"${i === 0 ? ' disabled' : ''}>Move up</button>
@@ -238,6 +243,7 @@
     const act = t.dataset.vact;
     if (act === 'del' && vs.length > 1) vs.splice(i, 1);
     if (act === 'dup') vs.splice(i + 1, 0, Object.assign({}, v, { id: TB.uid() }));
+    if (act === 'matchpaint') delete v.paint;
     if (act === 'up' && i > 0) vs.splice(i - 1, 0, vs.splice(i, 1)[0]);
     if (act) changed('variants');
   }
