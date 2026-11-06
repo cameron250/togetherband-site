@@ -517,11 +517,19 @@
     $('#q-units').oninput = renderQuote;
     $('#q-style').onchange = renderQuote;
 
+    // Product photos are recoloured asynchronously wherever they appear.
+    new MutationObserver(() => R.hydrateBands(document)).observe(document.body, { childList: true, subtree: true });
+    $('#goalCords').onclick = () => {
+      const c = R.sdg(current.edition.sdg).color;
+      current.edition.variants.forEach(v => { v.rope = c; });
+      changed('variants');
+    };
     window.addEventListener('hashchange', showTab);
     bind3D();
     showTab();
     syncForm();
     renderAll();
+    R.hydrateBands(document);
     // Re-render once web fonts arrive so wordmarks measure correctly.
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleRender);
   }

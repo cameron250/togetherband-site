@@ -134,7 +134,120 @@
     }
     return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>${tex}`;
   }
+  // ---------- band photography, recoloured in the browser ----------
+  /* Real product shots from the #TOGETHERBAND range. Each has a mask image whose
+     red channel marks the cord and green channel marks the clasp or charm, so the
+     cord can be re-dyed to any Goal colour while keeping the photo's own shading. */
+  const PHOTO_DIR = 'assets/img/bands/';
+  const CLASP_TINT = { rose: '#C98F7C', onyx: '#3A3C41', polished: '#C9CDD2', gold: '#D4A63C' };
+  function photoSpec(v) {
+    const style = v.style === 'braided' ? 'classic' : v.style;
+    if (style === 'heart') {
+      return { key: 'heart', clasp: v.finish === 'metallic' ? (v.metal || '#2457C5') : v.finish === 'rainbow' ? 'rainbow' : (CLASP_TINT[v.finish] || CLASP_TINT.polished) };
+    }
+    const gold = v.finish === 'gold';
+    const key = `${style === 'mini' ? 'mini' : 'classic'}-${gold ? 'gold' : 'polished'}`;
+    let clasp = '';
+    if (v.finish === 'metallic') clasp = v.metal || '#2457C5';
+    else if (v.finish === 'rainbow') clasp = 'rainbow';
+    else if (v.finish === 'rose' || v.finish === 'onyx') clasp = CLASP_TINT[v.finish];
+    return { key, clasp };
+  }
+  const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  const SIZES = { 'classic-polished': [687, 683], 'classic-gold': [687, 683], 'mini-gold': [738, 711], 'mini-polished': [738, 711], heart: [557, 694] };
+  const photoCache = {};
+  const assetCache = {};
+  function loadImg(src) {
+    return assetCache[src] || (assetCache[src] = new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = () => rej(new Error('Could not load ' + src));
+      i.src = src;
+    }));
+  }
+  function pixels(img) {
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(img, 0, 0);
+    return { c, x, d: x.getImageData(0, 0, c.width, c.height) };
+  }
+  const baseCache = {};
+  function base(key) {
+    return baseCache[key] || (baseCache[key] = Promise.all([loadImg(PHOTO_DIR + key + '.png'), loadImg(PHOTO_DIR + key + '-m.png')]).then(([im, mk]) => {
+      const P = pixels(im), M = pixels(mk);
+      const p = P.d.data, m = M.d.data;
+      let cy = 0, cn = 0, ky = 0, kn = 0, kx0 = 1e9, kx1 = -1;
+      for (let i = 0; i < p.length; i += 4) {
+        const Y = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
+        if (m[i] > 200) { cy += Y; cn++; }
+        if (m[i + 1] > 200) { ky += Y; kn++; const x = (i / 4) % P.c.width; if (x < kx0) kx0 = x; if (x > kx1) kx1 = x; }
+      }
+      return { w: P.c.width, h: P.c.height, p, m, cordMean: cy / Math.max(cn, 1), claspMean: ky / Math.max(kn, 1), kx0, kx1 };
+    }));
+  }
+  function hsl(h, s, l) {
+    const f = n => { const k = (n + h / 30) % 12; const a = s * Math.min(l, 1 - l); return 255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))); };
+    return [f(0), f(8), f(4)];
+  }
+  // Re-dye a pixel: keep its light and shade relative to the material's average tone.
+  function dye(p, o, i, T, mean, amt) {
+    const Y = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
+    const f = Y / Math.max(mean, 1);
+    const k = amt / 255;
+    for (let c = 0; c < 3; c++) {
+      const t = T[c];
+      const v = f <= 1 ? t * f : t + (255 - t) * Math.min(1, (f - 1) * 0.7);
+      o[i + c] = p[i + c] + (v - p[i + c]) * k;
+    }
+  }
+  function recolourPhoto(v) {
+    const s = photoSpec(v);
+    const id = `${s.key}|${String(v.rope).toLowerCase()}|${s.clasp}`;
+    if (photoCache[id]) return photoCache[id];
+    photoCache[id] = base(s.key).then(B => {
+      const c = document.createElement('canvas');
+      c.width = B.w; c.height = B.h;
+      const x = c.getContext('2d');
+      const out = x.createImageData(B.w, B.h);
+      const o = out.data, p = B.p, m = B.m;
+      o.set(p);
+      const T = hexToRgb(v.rope || '#C41A2E');
+      const K = s.clasp && s.clasp !== 'rainbow' ? hexToRgb(s.clasp) : null;
+      for (let i = 0; i < p.length; i += 4) {
+        if (!p[i + 3]) continue;
+        if (m[i]) dye(p, o, i, T, B.cordMean, m[i]);
+        else if (m[i + 1] && s.clasp) {
+          let C = K;
+          if (!C) { const px = (i / 4) % B.w; C = hsl(((px - B.kx0) / Math.max(1, B.kx1 - B.kx0)) * 300, 0.78, 0.55); }
+          dye(p, o, i, C, B.claspMean, m[i + 1]);
+        }
+      }
+      x.putImageData(out, 0, 0);
+      return c.toDataURL('image/png');
+    });
+    // Remember the finished URL so re-renders show it immediately, without a flash.
+    photoCache[id].then(u => { photoCache[id].url = u; });
+    return photoCache[id];
+  }
+  /* Swap every <img data-band> under root for its recoloured photo. */
+  function hydrateBands(root) {
+    (root || document).querySelectorAll('img[data-band]').forEach(img => {
+      const v = JSON.parse(img.dataset.band);
+      img.removeAttribute('data-band');
+      recolourPhoto(v).then(url => { img.src = url; img.classList.add('ready'); }).catch(() => { img.replaceWith(document.createRange().createContextualFragment(bandDrawing(v, { noShadow: true }))); });
+    });
+  }
   function bandSVG(v, opts) {
+    const s = photoSpec(v);
+    const id = `${s.key}|${String(v.rope).toLowerCase()}|${s.clasp}`;
+    const done = photoCache[id] && photoCache[id].url;
+    const [w, h] = SIZES[s.key];
+    const data = esc(JSON.stringify({ style: v.style, rope: v.rope, finish: v.finish, metal: v.metal }));
+    return `<img class="band band-photo${done ? ' ready' : ''}" width="${w}" height="${h}" alt="${esc(variantName(v))} #TOGETHERBAND" src="${done || BLANK}"${done ? '' : ` data-band="${data}"`}>`;
+  }
+
+  function bandDrawing(v, opts) {
     opts = opts || {};
     const id = gid('m');
     const metal = `url(#${id})`;
@@ -414,7 +527,7 @@
 
   TB.render = {
     esc, mix, shade, tint, onColor, luma, sdg, money, num, sleeveColor,
-    tbLogo, partnerLogo, qrSVG, bandSVG, variantName, packFace, box3D,
+    tbLogo, partnerLogo, qrSVG, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
     insertFront, insertBack, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
   };
 })(window);

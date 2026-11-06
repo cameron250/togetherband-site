@@ -171,7 +171,8 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .pk-h2 { margin: 6px 0 -12px; font: 600 15px/1 var(--font-display); letter-spacing: .12em; text-transform: uppercase; color: #1b1718; }
 .pk-variants { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
 .pkv { margin: 0; background: #fff; border-radius: 3px; padding: 10px 12px 14px; }
-.pkv svg { width: 100%; height: auto; }
+.pkv svg, .pkv img { width: 100%; height: auto; }
+.pkv > img { aspect-ratio: 1; object-fit: contain; }
 .pkv figcaption { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #6c6466; }
 .pkv figcaption b { color: #1b1718; font-weight: 600; font-size: 13px; }
 
@@ -243,6 +244,14 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .wm-display .wm-main { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; }
 .wm-script .wm-main { font-family: 'Playfair Display', Georgia, serif; font-style: italic; }
 .wm-sub { font-family: "Work Sans", Arial, sans-serif; font-size: .2em; line-height: 1; letter-spacing: .01em; margin: .14em .15em 0 0; }
+
+/* band photography */
+.band-photo { display: block; width: 100%; height: auto; opacity: 0; transition: opacity .2s; }
+.band-photo.ready { opacity: 1; }
+.pkv .band-photo, .s-prod-band .band-photo { filter: drop-shadow(0 10px 10px rgba(0,0,0,.18)); }
+.var-band .band-photo { padding: 6px; }
+.goal-cords { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline; }
+@media (prefers-reduced-motion: reduce) { .band-photo { transition: none; } }
 
 /* gift box */
 .pk {
@@ -354,7 +363,8 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .s-grid4 figcaption, .s-photo figcaption { position: absolute; left: 1cqw; right: 1cqw; bottom: .9cqw; color: #fff; font-size: .8cqw; line-height: 1.3; text-shadow: 0 1px 3px rgba(0,0,0,.6); text-transform: uppercase; letter-spacing: .02em; }
 .s-grid4 figure:nth-child(-n+2) figcaption { top: .9cqw; bottom: auto; }
 .s-grid4-band { position: absolute; left: 50%; top: 50%; width: 30cqw; transform: translate(-50%, -50%); pointer-events: none; filter: drop-shadow(0 .3cqw .6cqw rgba(0,0,0,.35)); }
-.s-grid4-band svg, .s-imp-band svg, .s-pw-band svg, .s-feature svg, .s-prod-band svg { width: 100%; height: auto; display: block; }
+.s-grid4-band svg, .s-imp-band svg, .s-pw-band svg, .s-feature svg, .s-prod-band svg,
+.s-grid4-band img, .s-imp-band img, .s-pw-band img, .s-feature img, .s-prod-band img { width: 100%; height: auto; display: block; }
 .s-stack { display: grid; grid-template-rows: 1fr 1fr; gap: .25cqw; }
 .s-photo figcaption { text-transform: none; font-size: .9cqw; }
 .s-feature { display: grid; place-items: center; padding: 4cqw; }
@@ -362,7 +372,7 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .s-sdg span { display: inline-grid; place-items: center; width: 3cqw; height: 3cqw; color: #fff; font: 700 1.6cqw/1 'Oswald', sans-serif; }
 
 .s-impact { background: #eeeff1; }
-.s-imp-band { position: absolute; left: 50%; top: 52%; width: 50cqw; transform: translate(-50%, -50%); opacity: .95; }
+.s-imp-band { position: absolute; left: 50%; top: 52%; width: 40cqw; transform: translate(-50%, -50%); opacity: .95; }
 .s-imp-title { position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%); text-align: center; width: 30cqw; }
 .s-imp-title .s-h { font-size: 3.8cqw; }
 .s-imp-title p { margin-top: 1.6cqw; font-size: 1.4cqw; }
@@ -396,7 +406,7 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 
 .s-power { background-size: cover; background-position: center; color: #fff; }
 .s-power .s-foot { color: #fff; }
-.s-pw-band { position: absolute; left: 50%; top: 50%; width: 46cqw; transform: translate(-50%, -48%); opacity: .95; }
+.s-pw-band { position: absolute; left: 50%; top: 50%; width: 38cqw; transform: translate(-50%, -48%); opacity: .95; }
 .s-pw-c { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); width: 30cqw; text-align: center; }
 .s-pw-c .s-h { font-weight: 700; font-size: 4.2cqw; }
 .s-pw-c p { margin-top: 1.4cqw; font-size: 1.3cqw; font-weight: 600; }

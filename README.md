@@ -16,8 +16,10 @@ python3 -m http.server 8000   # then visit http://localhost:8000
   the concertina booklet insert and the QR card. Upload the partner's logo (PNG/SVG,
   drag-and-drop or paste); the brand colour is taken from the logo automatically on a
   new project. "Export image" renders the whole sheet as a PNG to send to the client.
-- **Band variants**: Mini, Classic, Braided and Heart styles in any SDG cord colour,
-  with polished, gold, rose gold, onyx, rainbow or metallic clasps.
+- **Band variants**: real #TOGETHERBAND product photography, re-dyed in the browser
+  to any SDG cord colour (one click dyes every cord in the edition's Goal colour).
+  Clasps: polished and gold are photographed; rose gold, onyx, rainbow and metallic are
+  tinted from the polished photo. Braided uses the Classic photo until a braided shot is added.
 - **Costs & impact**: volume tiers, packaging cost, donation % and per-band impact
   (trees, CO₂, meals), plus a quick quote for any quantity.
 - **Presentation**: the standard partner deck (mission, impact, materials, product
@@ -35,3 +37,5 @@ colleague as a JSON file. The LITGIRLS and Unlock Futures decks are included as 
 - `assets/js/app.js` – state, editor bindings, preview, export, presenting
 - `assets/css/studio.css` – studio UI and artwork styles
 - `assets/img/` – photography from the existing partner decks
+- `assets/img/bands/` – product cutouts plus masks (red = cord, green = clasp) used for recolouring
+- `tools/build_band_masks.py` – how the cutouts and masks were made
