@@ -267,11 +267,11 @@
   }
   /* Swap every <img data-band> under root for its recoloured photo. */
   const tintCache = new Map();
-  function tintURL(src, color) {
-    const k = color + '|' + src;
+  function tintURL(src, color, maxPx) {
+    const k = color + '|' + src + '|' + (maxPx || 1600);
     if (!tintCache.has(k)) tintCache.set(k, loadImg(src).then(img => {
       const c = document.createElement('canvas');
-      const max = 1600, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const max = maxPx || 1600, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
       c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
       const x = c.getContext('2d');
       x.drawImage(img, 0, 0, c.width, c.height);
@@ -283,10 +283,10 @@
     }));
     return tintCache.get(k);
   }
-  function tintImg(src, color, cls, style) {
-    const pr = tintCache.get(color + '|' + src);
+  function tintImg(src, color, cls, style, maxPx) {
+    const pr = tintCache.get(color + '|' + src + '|' + (maxPx || 1600));
     const done = pr && pr.url;
-    return `<img class="${cls} tinted${done ? ' ready' : ''}" alt="" src="${done || BLANK}"${style ? ` style="${style}"` : ''}${done ? '' : ` data-tint="${esc(JSON.stringify({ src, color }))}"`}>`;
+    return `<img class="${cls} tinted${done ? ' ready' : ''}" alt="" src="${done || BLANK}"${style ? ` style="${style}"` : ''}${done ? '' : ` data-tint="${esc(JSON.stringify({ src, color, max: maxPx || 0 }))}"`}>`;
   }
   // Shrink bellyband back text until it fits its half of the band.
   function fitText(root) {
@@ -306,7 +306,7 @@
     (root || document).querySelectorAll('img[data-tint]').forEach(img => {
       const t = JSON.parse(img.dataset.tint);
       img.removeAttribute('data-tint');
-      tintURL(t.src, t.color).then(u => { img.src = u; img.classList.add('ready'); }).catch(() => {});
+      tintURL(t.src, t.color, t.max || 0).then(u => { img.src = u; img.classList.add('ready'); }).catch(() => {});
     });
     (root || document).querySelectorAll('img[data-band]').forEach(img => {
       const v = JSON.parse(img.dataset.band);
@@ -482,6 +482,61 @@
       panel(d.front, 'Front', front ? slv(front[0], '100%', 'left') : '') +
       panel(d.side, 'Side', `<div class="bbf-fill" style="background:${L.sleeve}">${strip('l')}</div>`) +
       panel(d.backTop, 'Back (on top)', back ? slv(back[0], (d.front / d.backTop * 100).toFixed(2) + '%', 'left') : '') +
+      `</div>`;
+  }
+  /* ---------- print-ready bellyband artwork ----------
+     Reproduces the production template: 2539 x 472 px at 300 dpi (215 x 40 mm incl. ~2.5 mm bleed).
+     All positions are template pixels; 1cqw = 25.39 px. */
+  const PA = { W: 2539, H: 472, trim: [30, 30, 2507.5, 440.5],
+    panels: { tape: [0, 168], under: [168, 601.5], sideL: [601.5, 825.5], front: [825.5, 1770.5], sideR: [1770.5, 1994.5], top: [1994.5, 2539] } };
+  const px = v => (v / PA.W * 100).toFixed(4) + 'cqw';
+  const FLAG_UK = '<svg viewBox="0 0 60 30" class="pa-flag"><clipPath id="uk-t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><rect width="60" height="30" fill="#012169"/><path d="M0,0 60,30M60,0 0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 60,30M60,0 0,30" clip-path="url(#uk-t)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></svg>';
+  const FLAG_BR = '<svg viewBox="0 0 20 14" class="pa-flag"><rect width="20" height="14" fill="#009C3B"/><path d="M10 1.7 18.3 7 10 12.3 1.7 7z" fill="#FFDF00"/><circle cx="10" cy="7" r="3.4" fill="#002776"/></svg>';
+  function reverseTexts(p) {
+    const g = sdg(p.edition.sdg), has = hasGoal(p);
+    const en = (p.packaging.reverseEn || '').trim() || ((has ? `Your #TOGETHERBAND is a symbol of support for United Nations' Sustainable Development Goal ${g.n}: ${g.name}. ` : '') +
+      'Every #TOGETHERBAND is made from sustainable materials, and its construction supports artisan employment in Brazil and Nepal. Ocean-bound plastic is recycled into the band\'s rope, turning the tide on plastic pollution, and the clasps are made of Humanium Metal, recycled illegal firearms that help put an end to armed violence. Find out more at togetherband.org');
+    const pt = (p.packaging.reversePt || '').trim() || ((has ? `Seu #TOGETHERBAND é um símbolo de apoio ao Objetivo de Desenvolvimento Sustentável ${g.n} das Nações Unidas: ${TB.SDG_PT[g.n - 1]}. ` : '') +
+      'Cada #TOGETHERBAND é feito com materiais sustentáveis e sua construção apoia o emprego de artesãos no Brasil e no Nepal. O plástico que vai para o oceano é reciclado na corda da banda, virando a maré da poluição plástica, e os fechos são feitos de Humanium Metal, armas de fogo ilegais recicladas que ajudam a pôr fim à violência armada. Saiba mais em togetherband.com.br');
+    return { en, pt };
+  }
+  function sideLabel(p, v) {
+    if ((p.packaging.sideLabel || '').trim()) return p.packaging.sideLabel.trim();
+    v = v || p.edition.variants[0] || {};
+    const st = (STYLES[v.style] || STYLES.mini).label.toUpperCase();
+    const fin = { polished: 'HUMANIUM PRATA', gold: 'HUMANIUM DOURADO', rose: 'HUMANIUM ROSÉ', onyx: 'HUMANIUM ÔNIX', rainbow: 'HUMANIUM ARCO-ÍRIS', metallic: 'HUMANIUM METALIZADO', painted: 'HUMANIUM PINTADO' }[v.finish] || 'HUMANIUM';
+    return `${st} - ${fin}`;
+  }
+  // face: 'outside' | 'inside'. hires: use print-resolution artwork where available.
+  function printArtwork(p, opt, face, hires) {
+    const L = look(p, opt);
+    const sc = L.sleeve, ink = L.ink || onColor(sc);
+    const art = L.art ? ((hires && (p.artworks || []).find(a => a.src === L.art) || {}).printSrc || L.art) : null;
+    const MAX = hires ? 6144 : 1600;
+    if (face === 'inside') {
+      const t = reverseTexts(p);
+      const col = luma(sc) > 0.3 ? shade(sc, 0.38) : sc;
+      return `<div class="pa pa-inside" style="color:${col}">` +
+        `<div class="pa-rev" style="left:${px(152)};top:${px(100)};width:${px(1014)}">${FLAG_UK} ${esc(t.en)}</div>` +
+        `<div class="pa-rev" style="left:${px(1294)};top:${px(100)};width:${px(1134)}">${FLAG_BR} ${esc(t.pt)}</div></div>`;
+    }
+    const P = PA.panels;
+    const strip = side => art && L.fit !== 'contain' ? tintImg(art, L.ink || '#ffffff', `pk-artimg pk-artstrip pk-artstrip-${side}`, '', MAX) : '';
+    const panel = (k, inner) => `<div class="pa-p" style="left:${px(P[k][0])};width:${px(P[k][1] - P[k][0])}">${inner}</div>`;
+    const frontInner = art ? tintImg(art, L.ink || '#ffffff', 'pk-artimg', `object-fit:${L.fit}`, MAX)
+      : `<div class="pa-frontlogo">${sleeveLogo(p, L, { maxH: 60, scale: 70 })}</div>`;
+    const label = (inner, cls) => `<div class="pa-lbl${art ? ' pa-lbl-solid' : ''}${cls ? ' ' + cls : ''}" style="background:${art ? sc : 'transparent'}">${inner}</div>`;
+    const head = p.packaging.backHeading
+      ? p.packaging.backHeading.split('\n').map(l => l.trim()).filter(Boolean).map(l => [[l.toUpperCase(), 700]])
+      : [[['#TOGETHERBAND', 700]], [['SPECIAL', 300], ['EDITION', 700]]];
+    const backText = `${svgHeading(head)}<div class="pa-copy">${esc(p.packaging.backCopy || insertCopy(p))}</div>`;
+    return `<div class="pa pa-outside" style="background:${sc};color:${ink}">` +
+      panel('tape', '') +
+      panel('under', strip('l') + `<div class="pa-center" style="padding-top:${px(4)}">${label(`${qrSVG(p.edition.url, ink)}<div class="pa-url">${esc(p.edition.url)}</div>`, 'pa-qr')}</div>`) +
+      panel('sideL', strip('r') + `<div class="pa-center"><div class="pa-side"${art ? ` style="background:${sc}"` : ''}>${esc(sideLabel(p))}</div></div>`) +
+      panel('front', frontInner) +
+      panel('sideR', strip('l')) +
+      panel('top', strip('l') + `<div class="pa-center" style="right:${px(2539 - 2507.5)};left:0">${label(backText, 'pa-back')}</div>`) +
       `</div>`;
   }
   // One packaging option as a labelled flat front, for the options grid and slide.
@@ -736,7 +791,7 @@
 
   TB.render = {
     esc, mix, shade, tint, onColor, luma, sdg, money, num, sleeveColor,
-    tbLogo, partnerLogo, qrSVG, hasGoal, bellybandFlat, dieline, variantFinish: v => finishTitle(v), look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
+    tbLogo, partnerLogo, qrSVG, hasGoal, printArtwork, reverseTexts, sideLabel, bellybandFlat, dieline, variantFinish: v => finishTitle(v), look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
     insertFront, insertBack, isCard, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
   };
 })(window);

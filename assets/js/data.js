@@ -23,6 +23,13 @@
     { n: 17, name: 'Partnerships for the Goals', color: '#19486A' }
   ];
 
+  // Portuguese Goal names, for the bilingual bellyband reverse.
+  const SDG_PT = ['Erradicação da Pobreza', 'Fome Zero e Agricultura Sustentável', 'Saúde e Bem-Estar', 'Educação de Qualidade',
+    'Igualdade de Gênero', 'Água Potável e Saneamento', 'Energia Limpa e Acessível', 'Trabalho Decente e Crescimento Econômico',
+    'Indústria, Inovação e Infraestrutura', 'Redução das Desigualdades', 'Cidades e Comunidades Sustentáveis',
+    'Consumo e Produção Responsáveis', 'Ação Contra a Mudança Global do Clima', 'Vida na Água', 'Vida Terrestre',
+    'Paz, Justiça e Instituições Eficazes', 'Parcerias e Meios de Implementação'];
+
   const STYLES = {
     mini: { label: 'Mini', desc: 'Fine Parley Ocean Plastic® cord with the twin-link clasp.' },
     classic: { label: 'Classic', desc: 'Double-wrap Ocean Plastic® rope with the signature clasp.' },
@@ -109,6 +116,9 @@
         backCopy: '',
         backPattern: true,
         insertStyle: 'gatefold',
+        sideLabel: '',
+        reverseEn: '',
+        reversePt: '',
         // Bellyband dieline, outside face, left to right: glue tape, back (under), side, front, side, back (on top).
         dieline: { tape: 138, backUnder: 433.5, side: 224, front: 945, backTop: 513, height: 410.5 },
         insertQrUrl: '',
@@ -192,6 +202,6 @@
   }
 
   global.TB = Object.assign(global.TB || {}, {
-    SDGS, STYLES, FINISHES, SLIDES, CURRENCIES, uid, newProject, deepMerge, sampleProjects
+    SDG_PT, SDGS, STYLES, FINISHES, SLIDES, CURRENCIES, uid, newProject, deepMerge, sampleProjects
   });
 })(window);

@@ -7,7 +7,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Josefin+Sans:wght@400;600&family=EB+Garamond:wght@400;500&family=Cormorant+SC:wght@500;600&family=Montserrat:wght@700;800&family=Playfair+Display:ital@1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&family=Jost:wght@400;500;600&family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Josefin+Sans:wght@400;600&family=EB+Garamond:wght@400;500&family=Cormorant+SC:wght@500;600&family=Montserrat:wght@700;800&family=Playfair+Display:ital@1&display=swap">
 <link rel="stylesheet" href="assets/css/studio.css">
 </head>
 <body>
@@ -190,6 +190,18 @@
         </div>
       </div>
       <div class="f">
+        <label for="f-side">Side panel product name (print)</label>
+        <input id="f-side" data-bind="packaging.sideLabel" type="text" placeholder="e.g. MINI - HUMANIUM PRATA">
+      </div>
+      <div class="f">
+        <label for="f-reven">Bellyband reverse, English (print)</label>
+        <textarea id="f-reven" data-bind="packaging.reverseEn" rows="3" placeholder="Leave blank for the standard text"></textarea>
+      </div>
+      <div class="f">
+        <label for="f-revpt">Bellyband reverse, Portuguese (print)</label>
+        <textarea id="f-revpt" data-bind="packaging.reversePt" rows="3" placeholder="Leave blank for the standard text"></textarea>
+      </div>
+      <div class="f">
         <label for="f-inscopy">Insert copy</label>
         <textarea id="f-inscopy" data-bind="packaging.insertCopy" rows="3" placeholder="Leave blank to use the standard impact copy"></textarea>
       </div>
@@ -313,6 +325,7 @@
           <figure class="pk-fig"><div id="pkBack"></div><figcaption>Back</figcaption></figure>
         </div>
         <figure class="pk-fig pk-fig-flat"><div id="pkFlat"></div><figcaption>Bellyband laid flat on the dieline (outside face) · dashed lines are folds</figcaption></figure>
+        <figure class="pk-fig pk-fig-flat pk-fig-print"><div id="pkPrint"></div><figcaption>Print artwork · outside, then reverse · 215 × 40 mm at 300 dpi, including bleed</figcaption></figure>
         <div class="pk-extras" id="pkExtras"></div>
         <h2 class="pk-h2">Band variants</h2>
         <div class="pk-variants" id="pkVariants"></div>
