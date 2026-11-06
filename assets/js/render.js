@@ -317,6 +317,18 @@
         k -= 0.05; el.style.setProperty('--k', k.toFixed(2));
       }
     });
+    // A logo label on the back matches the size of the text panel opposite it (as a share of the band,
+    // so it stays right when the view is resized or printed).
+    [['.pk-back', '.pkb-fit', '.bk-logo'], ['.pa-outside', '.pa-back', '.pa-logo']].forEach(([wrap, txt, logo]) => {
+      (root || document).querySelectorAll(wrap).forEach(w => {
+        const t = w.querySelector(txt), l = w.querySelector(logo);
+        if (!t || !l || !w.clientWidth) return;
+        const panel = l.closest('.pa-p, .pkb-half');
+        const wpx = Math.min(t.offsetWidth, panel ? panel.clientWidth * 0.9 : Infinity);
+        l.style.width = (wpx / w.clientWidth * 100).toFixed(3) + 'cqw';
+        l.style.height = (t.offsetHeight / w.clientWidth * 100).toFixed(3) + 'cqw';
+      });
+    });
   }
   function hydrateBands(root) {
     fitText(root);
