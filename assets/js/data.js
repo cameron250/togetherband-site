@@ -91,6 +91,7 @@
         sdg: 13,
         url: 'togetherband.org',
         madeIn: 'Designed in London. Made in Nepal.',
+        origin: '',
         variants: [
           { id: uid(), style: 'classic', rope: '#C41A2E', finish: 'polished', metal: '#00689D' },
           { id: uid(), style: 'mini', rope: '#C41A2E', finish: 'gold', metal: '#00689D' }
@@ -103,6 +104,8 @@
         insert: true,
         qrCard: true,
         insertCopy: '',
+        backHeading: '',
+        backCopy: '',
         options: [],
         active: 0
       },
@@ -121,7 +124,7 @@
         impact: { trees: 1, co2: 150, meals: 4 },
         note: 'Excludes delivery and duties.'
       },
-      deck: { slides: defaultSlides(), intro: '' }
+      deck: { slides: defaultSlides(), intro: '', coverArt: '' }
     };
     return deepMerge(base, overrides || {});
   }

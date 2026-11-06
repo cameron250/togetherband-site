@@ -117,6 +117,13 @@
         <input id="f-url" data-bind="edition.url" type="text" spellcheck="false">
       </div>
       <div class="f">
+        <label for="f-origin">Production story in the presentation</label>
+        <select id="f-origin" data-bind="edition.origin">
+          <option value="">Brazil, Nepal and the Amazon (standard)</option>
+          <option value="brazil">Brazil only</option>
+        </select>
+      </div>
+      <div class="f">
         <label for="f-made">Origin line</label>
         <input id="f-made" data-bind="edition.madeIn" type="text">
       </div>
@@ -151,6 +158,14 @@
       <div class="checks">
         <label><input type="checkbox" data-bind="packaging.insert"> Concertina booklet insert</label>
         <label><input type="checkbox" data-bind="packaging.qrCard"> QR code card</label>
+      </div>
+      <div class="f">
+        <label for="f-backh">Back of box heading (optional)</label>
+        <textarea id="f-backh" data-bind="packaging.backHeading" rows="2" placeholder="Leave blank to show the Goal the edition supports"></textarea>
+      </div>
+      <div class="f">
+        <label for="f-backc">Back of box text</label>
+        <textarea id="f-backc" data-bind="packaging.backCopy" rows="3"></textarea>
       </div>
       <div class="f">
         <label for="f-inscopy">Insert copy</label>
@@ -222,6 +237,10 @@
       <div class="f">
         <label for="f-intro">About this partnership (adds a slide)</label>
         <textarea id="f-intro" data-bind="deck.intro" rows="4" placeholder="Why this partner, what the edition supports, launch moment…"></textarea>
+      </div>
+      <div class="f">
+        <label for="f-coverart">Cover background</label>
+        <select id="f-coverart" data-bind="deck.coverArt"><option value="">Plain colour with logos</option></select>
       </div>
       <span class="lbl">Slides to include</span>
       <div class="checks checks-col" id="slideToggles"></div>

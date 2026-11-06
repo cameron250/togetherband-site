@@ -17,7 +17,7 @@
 
   function withExtras(list) {
     (TB.extraSamples || []).forEach(x => {
-      if (x.replaces) list = list.filter(p => p.id !== x.replaces);
+      if (x.replaces) list = list.filter(p => ![].concat(x.replaces).includes(p.id));
       if (!list.some(p => p.id === x.id)) list.unshift(TB.newProject(x));
     });
     return list;
@@ -68,6 +68,8 @@
   }
 
   function syncForm() {
+    const ca = $('#f-coverart');
+    ca.innerHTML = '<option value="">Plain colour with logos</option>' + (current.artworks || []).map(a => `<option value="${a.id}">Artwork pattern: ${R.esc(a.name)}</option>`).join('');
     $$('[data-bind]').forEach(el => {
       if (el === document.activeElement && el.type !== 'checkbox') return;
       const v = getPath(current, el.dataset.bind);

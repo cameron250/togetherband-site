@@ -381,8 +381,10 @@
       const g = sdg(p.edition.sdg);
       const made = esc(p.edition.madeIn || '').replace(/\.\s+/g, '.<br>');
       sleeve = `<div class="pk-sleeve pk-back" style="background:${sc};color:${ink}">` +
-        `<div class="pkb-l"><div class="pkb-h"><b>#TOGETHERBAND</b><br><b>EDITION</b> <span>SUPPORTING</span><br><b>SDG ${g.n}:</b><br><b>${esc(g.name.toUpperCase())}</b></div>` +
-        `<div class="pkb-made">${made}</div></div>` +
+        (p.packaging.backHeading
+          ? `<div class="pkb-l pkb-custom"><div class="pkb-h"><b>${esc(p.packaging.backHeading).replace(/\n/g, '<br>')}</b></div><div class="pkb-copy">${esc(p.packaging.backCopy || '')}</div></div>`
+          : `<div class="pkb-l"><div class="pkb-h"><b>#TOGETHERBAND</b><br><b>EDITION</b> <span>SUPPORTING</span><br><b>SDG ${g.n}:</b><br><b>${esc(g.name.toUpperCase())}</b></div>` +
+        `<div class="pkb-made">${made}</div></div>`) +
         `<div class="pkb-r" style="border-color:${ink === '#ffffff' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)'}">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div></div>`;
     }
     return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}">${emb}${sleeve}</div>`;
@@ -415,7 +417,7 @@
       `Each one plants ${im.trees} tree${im.trees == 1 ? '' : 's'}, provides ${im.meals} meals for families in need and supports ${p.pricing.beneficiary}.`;
   }
   function insertFront(p) {
-    return `<div class="ins ins-front"><div class="ins-p ins-fold-l"><div class="ins-h">${esc(p.edition.name)} ×<br>#TOGETHERBAND</div><p>${esc(insertCopy(p))}</p></div>` +
+    return `<div class="ins ins-front"><div class="ins-p ins-fold-l"><div class="ins-h">${p.packaging.backHeading ? esc(p.packaging.backHeading).replace(/\n/g, '<br>') : esc(p.edition.name) + ' ×<br>#TOGETHERBAND'}</div><p>${esc(insertCopy(p))}</p></div>` +
       `<div class="ins-p ins-qr">${qrSVG(p.edition.url, '#141414')}<div class="ins-url">${esc(p.edition.url)}</div></div></div>`;
   }
   function insertBack(p) {
@@ -512,16 +514,21 @@
     const logoTone = ink === '#ffffff' ? 'white' : 'black';
     const hl = (a, b, c) => `<h2 class="s-h">${a ? esc(a) + ' ' : ''}<em style="color:${A}">${esc(b)}</em>${c ? '<br>' + esc(c) : ''}</h2>`;
 
-    if (on('cover')) add('cover', `<div class="slide s-cover" style="background:${A};color:${ink}">` +
+    const coverArt = p.deck.coverArt && (p.artworks || []).find(a => a.id === p.deck.coverArt);
+    if (on('cover') && coverArt) add('cover', `<div class="slide s-cover s-cover-art" style="background:${A};color:${ink}">` +
+      tintImg(coverArt.src, ink, 's-cover-pattern') +
+      `<div class="s-cover-badge" style="background:${A}">${tbLogo({ color: ink })}<span class="s-cover-x">×</span><span class="s-cover-ed">${ED}</span></div></div>`, 'Cover');
+    else if (on('cover')) add('cover', `<div class="slide s-cover" style="background:${A};color:${ink}">` +
       `<div class="s-cover-tb">${tbLogo({ color: ink })}</div><div class="s-plus">+</div>` +
       `<div class="s-cover-logo">${partnerLogo(p, { tone: logoTone, scale: 46, maxH: 70, fallbackColor: ink })}</div></div>`, 'Cover');
 
+    const BR = p.edition.origin === 'brazil';
     if (on('mission')) add('mission', `<div class="slide s-split">` +
       `<div class="s-txt"><h2 class="s-h"><em style="color:${A}">#TOGETHERBAND</em><br>OUR MISSION</h2>` +
-      `<p><b>Empowering artisan communities in Brazil, Nepal and the Amazon Rainforest.</b> We are a mission-driven company dedicated to empowering economically vulnerable women and Indigenous communities through regenerative design.</p>` +
+      `<p><b>${BR ? 'Empowering artisan communities in Brazil and the Amazon Rainforest.' : 'Empowering artisan communities in Brazil, Nepal and the Amazon Rainforest.'}</b> We are a mission-driven company dedicated to empowering economically vulnerable women and Indigenous communities through regenerative design.</p>` +
       `<p><b>Protecting our planet’s resources.</b> Our collections are made with leading-edge sustainable materials. We upcycle, recycle and re-use materials at every level, from recycled satellites and food waste to confiscated illegal firearms and Ocean Plastic®.</p>` +
       `<p><b>Advocating for sustainability using creativity and culture.</b> We positively engage the public in critical social and environmental issues through our products and creative culture-led campaigns.</p></div>` +
-      `<div class="s-grid4">${['atelier-yawanawa|BOTTLETOP Yawanawá Rainforest Atelier', 'humanium-metal|Humanium Metal firearm destruction', 'parley-cleanup|Parley Ocean Plastic® beach clean-up', 'atelier-kathmandu|BOTTLETOP Atelier Kathmandu, Nepal'].map(s => { const [f, c] = s.split('|'); return `<figure style="background-image:url(${IMG}${f}.jpg)"><figcaption>${c}</figcaption></figure>`; }).join('')}` +
+      `<div class="s-grid4">${['atelier-yawanawa|BOTTLETOP Yawanawá Rainforest Atelier', 'humanium-metal|Humanium Metal firearm destruction', 'parley-cleanup|Parley Ocean Plastic® beach clean-up', BR ? 'yawanawa-community|Yawanawá community, Amazon Rainforest, Brazil' : 'atelier-kathmandu|BOTTLETOP Atelier Kathmandu, Nepal'].map(s => { const [f, c] = s.split('|'); return `<figure style="background-image:url(${IMG}${f}.jpg)"><figcaption>${c}</figcaption></figure>`; }).join('')}` +
       `<div class="s-grid4-band">${bandSVG(Object.assign({}, hero, { style: hero.style === 'heart' ? 'heart' : 'mini' }), { noShadow: true })}</div></div>${foot()}</div>`, 'Our mission');
 
     if (on('world2030')) add('world2030', `<div class="slide s-split s-rev">` +
@@ -539,16 +546,16 @@
       `<div class="s-grid4">${['ambassador-bjk|Billie Jean King · Goal 5', 'ambassador-db|David Beckham · Goal 3', 'ambassador-lh|Lewis Hamilton · Goal 4', 'ambassador-jj|Jameela Jamil · Goal 5'].map(s => { const [f, c] = s.split('|'); return `<figure style="background-image:url(${IMG}${f}.jpg)"><figcaption>${c}<br>#TOGETHERBAND AMBASSADOR</figcaption></figure>`; }).join('')}</div>${foot()}</div>`, 'Drives change');
 
     if (on('materials')) add('materials', `<div class="slide s-split s-rev">` +
-      `<div class="s-stack"><figure style="background-image:url(${IMG}nepal-artisans.jpg)"></figure><figure style="background-image:url(${IMG}yawanawa-community.jpg)"></figure></div>` +
+      `<div class="s-stack"><figure style="background-image:url(${IMG}${BR ? 'atelier-yawanawa' : 'nepal-artisans'}.jpg)"></figure><figure style="background-image:url(${IMG}yawanawa-community.jpg)"></figure></div>` +
       `<div class="s-txt s-small"><h2 class="s-h" style="color:${A}"><b>#TOGETHERBAND<br>MATERIALS &amp; PRODUCTION</b></h2>` +
       `<p><b>Humanium Metal clasp.</b> Someone is shot every minute. Humanium Metal is recycled stainless steel made from illegal firearms seized by authorities in Central America. Every clasp helps end armed violence and funds projects that rebuild conflict-torn societies.</p>` +
       `<p><b>Recycled rope &amp; açaí seeds.</b> An estimated 12.7 million tonnes of plastic enter our oceans every year. Our Parley Ocean Plastic® rope is made from intercepted plastic waste. In the Amazon our bands use seeds left over after the Yawanawá harvest.</p>` +
-      `<p><b>Empowering women and Indigenous communities.</b> #TOGETHERBANDs are made by economically vulnerable women rescued from the streets and human trafficking in Kathmandu, and by Indigenous communities protecting their ecosystems.</p></div>${foot()}</div>`, 'Materials & production');
+      `<p><b>Empowering women and Indigenous communities.</b> ${BR ? '#TOGETHERBAND supports economically vulnerable women and Indigenous communities across Brazil, providing skills, fair work and income for families, and helping communities protect their ecosystems.' : '#TOGETHERBANDs are made by economically vulnerable women rescued from the streets and human trafficking in Kathmandu, and by Indigenous communities protecting their ecosystems.'}</p></div>${foot()}</div>`, 'Materials & production');
 
     if (on('impact')) add('impact', `<div class="slide s-impact">` +
       `<div class="s-imp-band">${bandSVG(hero, { noShadow: true })}</div>` +
       `<div class="s-imp-title"><h2 class="s-h">THE <em style="color:${A}">IMPACT</em> OF<br>A #TOGETHERBAND</h2><p><b>Every band drives impact<br>in six ways</b></p></div>` +
-      [['bottle', 'Rope made from 100% Parley Ocean Plastic®', 'l1'], ['hands', 'Made by economically disadvantaged women in Brazil and Nepal', 'l2'], ['clasp', 'Clasps made from Humanium Metal: recycled, decommissioned illegal firearms', 'l3'],
+      [['bottle', 'Rope made from 100% Parley Ocean Plastic®', 'l1'], ['hands', BR ? 'Supports economically disadvantaged women and families in Brazil' : 'Made by economically disadvantaged women in Brazil and Nepal', 'l2'], ['clasp', 'Clasps made from Humanium Metal: recycled, decommissioned illegal firearms', 'l3'],
         ['tree', `${im.trees} tree${im.trees == 1 ? '' : 's'} planted for every band`, 'r1'], ['coin', `${p.pricing.donationPct}% of proceeds donated to ${esc(p.pricing.beneficiary)}`, 'r2'], ['meal', `${im.meals} meals for families in need with every band`, 'r3']]
         .map(([k, t, pos]) => `<div class="s-imp-pt s-${pos}">${icon(k, A)}<span>${t}</span></div>`).join('') + `${foot()}</div>`, 'Impact of a band');
 
