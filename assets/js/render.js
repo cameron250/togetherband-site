@@ -594,7 +594,7 @@
       const os = p.packaging.options || [];
       const heroOpt = os.find(o => o.id === p.deck.heroOption) || activeOption(p);
       const feature = heroOpt
-        ? `<div class="s-hero"><div class="s-hero-box">${packFace(p, 'front', { opt: heroOpt })}</div><div class="s-hero-band">${bandSVG(hero)}</div></div>`
+        ? `<div class="s-hero${p.deck.heroBand === false ? ' s-hero-solo' : ''}"><div class="s-hero-box">${packFace(p, 'front', { opt: heroOpt })}</div>${p.deck.heroBand === false ? '' : `<div class="s-hero-band">${bandSVG(hero)}</div>`}</div>`
         : `<div class="s-feature" style="background:${tint(A, 0.9)}">${bandSVG(hero)}</div>`;
       add('partnership', `<div class="slide s-split">` +
         `<div class="s-txt">${hl(p.edition.name.toUpperCase() + ' ×', '#TOGETHERBAND', '')}${(p.deck.intro || '').split(/\n{2,}/).map(x => `<p>${esc(x)}</p>`).join('')}` +
@@ -704,7 +704,7 @@
 
   TB.render = {
     esc, mix, shade, tint, onColor, luma, sdg, money, num, sleeveColor,
-    tbLogo, partnerLogo, qrSVG, hasGoal, look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
+    tbLogo, partnerLogo, qrSVG, hasGoal, variantFinish: v => finishTitle(v), look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
     insertFront, insertBack, isCard, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
   };
 })(window);

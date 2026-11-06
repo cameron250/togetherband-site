@@ -374,7 +374,7 @@
     if (p.packaging.qrCard) ex += `<figure class="pk-fig pk-fig-qr"><div>${R.qrCard(p)}</div><figcaption>QR card</figcaption></figure>`;
     $('#pkExtras').innerHTML = ex;
     $('#pkExtras').hidden = !ex;
-    $('#pkVariants').innerHTML = p.edition.variants.map(v => `<figure class="pkv">${R.bandSVG(v)}<figcaption><b>${R.esc(R.variantName(v))}</b><span>${R.esc(TB.FINISHES[v.finish].title)} clasp · ${R.money(p.pricing.prices[v.style], p.pricing.currency, 2)} RRP</span></figcaption></figure>`).join('');
+    $('#pkVariants').innerHTML = p.edition.variants.map(v => `<figure class="pkv">${R.bandSVG(v)}<figcaption><b>${R.esc(R.variantName(v))}</b><span>${R.esc(R.variantFinish(v))} clasp</span></figcaption></figure>`).join('');
   }
 
   function renderDeck() {

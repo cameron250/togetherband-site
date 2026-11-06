@@ -440,6 +440,7 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .s-feature { display: grid; place-items: center; padding: 4cqw; }
 /* hero: the band resting on its packaging */
 .s-hero { position: relative; }
+.s-hero-solo .s-hero-box { top: 50%; width: 34cqw; }
 .s-hero-band img, .s-hero-band svg { width: 100%; height: auto; display: block; }
 .s-hero-box { position: absolute; left: 50%; top: 46%; width: 30cqw; transform: translate(-50%, -50%); }
 .s-hero-band { position: absolute; left: 50%; top: 60%; width: 31cqw; transform: translate(-50%, -50%); filter: drop-shadow(0 1.2cqw 1.2cqw rgba(0,0,0,.35)); }
