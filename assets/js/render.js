@@ -38,7 +38,24 @@
   }
   const num = v => (Number(v) || 0).toLocaleString('en-GB');
 
-  function sleeveColor(p) {
+  /* Packaging options: artwork × sleeve colour × line colour. The active option
+     drives the 3D box, flat proofs, insert, QR card and slides. */
+  function activeOption(p) {
+    const os = (p.packaging && p.packaging.options) || [];
+    if (!os.length) return null;
+    return os[Math.max(0, Math.min(os.length - 1, Number(p.packaging.active) || 0))];
+  }
+  function look(p, opt) {
+    const o = opt === undefined ? activeOption(p) : opt;
+    if (o) {
+      const art = o.art && o.art !== 'logo' ? (p.artworks || []).find(a => a.id === o.art) : null;
+      return { sleeve: o.sleeve, ink: o.ink, art: art ? art.src : null, fit: o.fit || 'cover', label: o.label };
+    }
+    const sc = baseSleeve(p);
+    return { sleeve: sc, ink: null, art: null };
+  }
+  function sleeveColor(p) { return look(p).sleeve; }
+  function baseSleeve(p) {
     const k = p.packaging.sleeve;
     if (k === 'sdg') return sdg(p.edition.sdg).color;
     if (k === 'custom') return p.packaging.sleeveColor || p.brand.primary;
@@ -79,6 +96,7 @@
     const tone = o.tone || b.logoTone || 'original';
     const scale = o.scale || b.logoScale || 70;
     const toneColor = tone === 'white' ? '#ffffff' : tone === 'black' ? '#141414' : (o.fallbackColor || '#141414');
+    if (tone === 'ink' && b.logo) return `<div class="plogo">${tintImg(b.logo, toneColor, 'plogo-img', `max-width:${scale}cqw;max-height:${o.maxH || 62}cqh`)}</div>`;
     let inner;
     if (b.logo) {
       const filter = tone === 'white' ? 'brightness(0) invert(1)' : tone === 'black' ? 'brightness(0)' : 'none';
@@ -233,7 +251,34 @@
     return photoCache[id];
   }
   /* Swap every <img data-band> under root for its recoloured photo. */
+  const tintCache = new Map();
+  function tintURL(src, color) {
+    const k = color + '|' + src;
+    if (!tintCache.has(k)) tintCache.set(k, loadImg(src).then(img => {
+      const c = document.createElement('canvas');
+      const max = 1600, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
+      const x = c.getContext('2d');
+      x.drawImage(img, 0, 0, c.width, c.height);
+      x.globalCompositeOperation = 'source-in';
+      x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
+      const u = c.toDataURL('image/png');
+      tintCache.get(k).url = u;
+      return u;
+    }));
+    return tintCache.get(k);
+  }
+  function tintImg(src, color, cls, style) {
+    const pr = tintCache.get(color + '|' + src);
+    const done = pr && pr.url;
+    return `<img class="${cls} tinted${done ? ' ready' : ''}" alt="" src="${done || BLANK}"${style ? ` style="${style}"` : ''}${done ? '' : ` data-tint="${esc(JSON.stringify({ src, color }))}"`}>`;
+  }
   function hydrateBands(root) {
+    (root || document).querySelectorAll('img[data-tint]').forEach(img => {
+      const t = JSON.parse(img.dataset.tint);
+      img.removeAttribute('data-tint');
+      tintURL(t.src, t.color).then(u => { img.src = u; img.classList.add('ready'); }).catch(() => {});
+    });
     (root || document).querySelectorAll('img[data-band]').forEach(img => {
       const v = JSON.parse(img.dataset.band);
       img.removeAttribute('data-band');
@@ -290,9 +335,14 @@
 
   function finishTitle(v) {
     const f = FINISHES[v.finish] || FINISHES.polished;
+    if (v.finish === 'painted' && colourName(v)) return `${colourName(v)} painted`;
     return f.title;
   }
-  const shortFinish = v => (v.finish === 'rose' ? 'Rose gold' : (FINISHES[v.finish] || FINISHES.polished).title);
+  const colourName = v => (v.colorName || '').trim();
+  const shortFinish = v => {
+    const base = v.finish === 'rose' ? 'Rose gold' : (FINISHES[v.finish] || FINISHES.polished).title;
+    return v.finish === 'painted' && colourName(v) ? `${colourName(v)} painted` : base;
+  };
   function variantName(v, p) {
     const st = (STYLES[v.style] || STYLES.classic).label;
     const fin = v.finish === 'polished' || v.finish === 'gold' ? '' : shortFinish(v);
@@ -300,16 +350,33 @@
   }
 
   // ---------- packaging ----------
+  function sleeveArt(L, cls) {
+    return L.art ? tintImg(L.art, L.ink || '#ffffff', 'pk-artimg' + (cls ? ' ' + cls : ''), `object-fit:${L.fit}`) : '';
+  }
+  // Logo on a sleeve: either the partner logo knocked out to the option's ink, or the default treatment.
+  function sleeveLogo(p, L, o) {
+    const sc = L.sleeve;
+    if (L.ink) {
+      if (p.brand.logo && p.brand.logoTone !== 'original') {
+        const scale = o.scale || p.brand.logoScale || 70;
+        return `<div class="plogo">${tintImg(p.brand.logo, L.ink, 'plogo-img', `max-width:${scale}cqw;max-height:${o.maxH || 62}cqh`)}</div>`;
+      }
+      return partnerLogo(p, Object.assign({}, o, { tone: 'ink', fallbackColor: L.ink }));
+    }
+    const ink = onColor(sc);
+    const tone = p.brand.logoTone === 'original' ? 'original' : (ink === '#ffffff' ? p.brand.logoTone : 'black');
+    return partnerLogo(p, Object.assign({}, o, { tone }));
+  }
   function packFace(p, side, o) {
     o = o || {};
-    const sc = sleeveColor(p);
-    const ink = onColor(sc);
+    const L = look(p, o.opt);
+    const sc = L.sleeve;
+    const ink = L.ink || onColor(sc);
     const box = p.packaging.box === 'black' ? 'pk-black' : 'pk-white';
     const emb = `<div class="pk-emboss">${tbLogo()}</div>`;
     let sleeve;
     if (side === 'front') {
-      const tone = p.brand.logoTone === 'original' ? 'original' : (ink === '#ffffff' ? p.brand.logoTone : 'black');
-      sleeve = `<div class="pk-sleeve" style="background:${sc}">${partnerLogo(p, { tone, maxH: 66 })}</div>`;
+      sleeve = `<div class="pk-sleeve${L.art ? ' pk-art' : ''}" style="background:${sc}">${L.art ? sleeveArt(L) : sleeveLogo(p, L, { maxH: 66 })}</div>`;
     } else {
       const g = sdg(p.edition.sdg);
       const made = esc(p.edition.madeIn || '').replace(/\.\s+/g, '.<br>');
@@ -322,7 +389,12 @@
   }
   function packSide(p, wrapped) {
     const box = p.packaging.box === 'black' ? 'pk-black' : 'pk-white';
-    return `<div class="pk pk-side ${box}">${wrapped ? `<div class="pk-sleeve" style="background:${sleeveColor(p)}"></div>` : ''}</div>`;
+    const L = look(p);
+    return `<div class="pk pk-side ${box}">${wrapped ? `<div class="pk-sleeve pk-art" style="background:${L.sleeve}">${sleeveArt(L)}</div>` : ''}</div>`;
+  }
+  // One packaging option as a labelled flat front, for the options grid and slide.
+  function optionCard(p, opt, i, active) {
+    return `<figure class="pko${active ? ' on' : ''}">${packFace(p, 'front', { opt })}<figcaption>${esc(opt.label || 'Option ' + (i + 1))}</figcaption></figure>`;
   }
   function box3D(p, view) {
     view = view || { rx: 56, rz: -32 };
@@ -347,11 +419,11 @@
       `<div class="ins-p ins-qr">${qrSVG(p.edition.url, '#141414')}<div class="ins-url">${esc(p.edition.url)}</div></div></div>`;
   }
   function insertBack(p) {
-    const sc = sleeveColor(p);
-    const ink = onColor(sc);
-    const tone = p.brand.logoTone === 'original' ? 'original' : (ink === '#ffffff' ? p.brand.logoTone : 'black');
+    const L = look(p);
+    const sc = L.sleeve;
+    const ink = L.ink || onColor(sc);
     return `<div class="ins ins-back"><div class="ins-p"><div class="ins-panel" style="background:${sc};color:${ink}">${tbLogo({ color: ink })}<div class="ins-sdg">SDG ${sdg(p.edition.sdg).n} · ${esc(sdg(p.edition.sdg).name)}</div></div></div>` +
-      `<div class="ins-p ins-fold-r" style="background:${shade(sc, 0.12)}">${partnerLogo(p, { tone, maxH: 50, scale: 78 })}</div></div>`;
+      `<div class="ins-p ins-fold-r${L.art ? ' pk-art' : ''}" style="background:${L.art ? sc : shade(sc, 0.12)}">${L.art ? sleeveArt(L) : sleeveLogo(p, L, { maxH: 50, scale: 78 })}</div></div>`;
   }
   function qrCard(p) {
     const sc = sleeveColor(p);
@@ -487,14 +559,18 @@
 
     if (on('yourband')) add('yourband', `<div class="slide s-section" style="background:${A};color:${ink}"><h2>YOUR BAND,<br>YOUR MESSAGE</h2></div>`, 'Your band, your message');
 
-    if (on('products')) p.edition.variants.forEach((v, i) => {
+    // One product slide per band variant, repeated for each packaging option when there are several.
+    const prodOpts = (p.packaging.options || []).length > 1 ? p.packaging.options : [undefined];
+    if (on('products')) p.edition.variants.forEach(v => prodOpts.forEach(opt => {
       const st = STYLES[v.style].label.toUpperCase();
       const fin = v.finish === 'polished' || v.finish === 'gold' ? '' : (shortFinish(v).toUpperCase() + ' ');
+      const tag = opt ? `<div class="s-prod-opt">PACKAGING OPTION: ${esc((opt.label || '').toUpperCase())}</div>` : '';
       add('product', `<div class="slide s-product"><div class="s-prod-h" style="color:${A}"><b>${st} ${fin}${ED}</b> <span>#TOGETHERBAND</span><br>` +
-        `<b>${v.style === 'heart' ? 'RECYCLED ILLEGAL FIREARM METAL HEART &amp; OCEAN PLASTIC' : esc(finishTitle(v).toUpperCase()) + ' RECYCLED ILLEGAL FIREARM METAL &amp; OCEAN PLASTIC'}</b></div>` +
-        `<div class="s-prod-row"><div class="s-prod-c">${packFace(p, 'front')}<span>FRONT</span></div><div class="s-prod-c">${packFace(p, 'back')}<span>BACK</span></div>` +
-        `<div class="s-prod-band">${bandSVG(v)}</div></div><div class="s-prod-sdg">GOAL ${g.n} · ${esc(g.name.toUpperCase())}</div>${foot()}</div>`, `${STYLES[v.style].label} ${shortFinish(v)}`);
-    });
+        `<b>${v.style === 'heart' ? 'RECYCLED ILLEGAL FIREARM METAL HEART &amp; OCEAN PLASTIC' : esc(finishTitle(v).toUpperCase()) + ' RECYCLED ILLEGAL FIREARM METAL &amp; OCEAN PLASTIC'}</b></div>${tag}` +
+        `<div class="s-prod-row"><div class="s-prod-c">${packFace(p, 'front', { opt })}<span>FRONT</span></div><div class="s-prod-c">${packFace(p, 'back', { opt })}<span>BACK</span></div>` +
+        `<div class="s-prod-band">${bandSVG(v)}</div></div><div class="s-prod-sdg">GOAL ${g.n} · ${esc(g.name.toUpperCase())}</div>${foot()}</div>`,
+        `${STYLES[v.style].label} ${shortFinish(v)}${opt ? ' · ' + (opt.label || '') : ''}`);
+    }));
 
     if (on('unboxing')) add('unboxing', `<div class="slide s-unbox">` +
       `<div class="s-ub-box">${box3D(p, { rx: 52, rz: -30 })}</div>` +
@@ -505,6 +581,10 @@
       (p.packaging.insert ? `<div class="s-ub-t s-ub-t3"><b>#TOGETHERBAND × ${ED}</b><br>A concertina insert unpacks the product, the campaign and your key messages.*</div>` : '') +
       (p.packaging.qrCard ? `<div class="s-ub-t s-ub-t4"><b>A direct link to your campaign.</b><br>An optional QR card* points people to ${esc(p.edition.url)}.</div>` : '') +
       `<div class="s-note">* Optional packaging elements are available at additional cost.</div>${foot()}</div>`, 'Packaging contents');
+
+    const opts = (p.packaging.options || []);
+    if (on('options') && opts.length > 1) add('options', `<div class="slide s-product s-opts"><div class="s-prod-h" style="color:${A}"><b>${ED}</b> <span>PACKAGING OPTIONS</span></div>` +
+      `<div class="s-opt-grid" style="--cols:${opts.length > 4 ? 3 : opts.length}">${opts.map((o, i) => optionCard(p, o, i, false)).join('')}</div>${foot()}</div>`, 'Packaging options');
 
     if (on('insert') && p.packaging.insert) add('insert', `<div class="slide s-product"><div class="s-prod-h" style="color:${A}"><b>${ED}</b> <span>BOOKLET INSERT</span></div>` +
       `<div class="s-ins-row"><div class="s-prod-c">${insertFront(p)}<span>FRONT</span></div><div class="s-prod-c">${insertBack(p)}<span>BACK</span></div></div>${foot()}</div>`, 'Booklet insert');
@@ -530,7 +610,7 @@
 
   TB.render = {
     esc, mix, shade, tint, onColor, luma, sdg, money, num, sleeveColor,
-    tbLogo, partnerLogo, qrSVG, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
+    tbLogo, partnerLogo, qrSVG, look, activeOption, optionCard, tintURL, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
     insertFront, insertBack, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
   };
 })(window);

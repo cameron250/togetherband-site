@@ -51,6 +51,7 @@
     { key: 'yourband', label: 'Your band, your message' },
     { key: 'products', label: 'Product & packaging (one per variant)' },
     { key: 'unboxing', label: 'Packaging contents' },
+    { key: 'options', label: 'Packaging options (when there are several)' },
     { key: 'insert', label: 'Booklet insert' },
     { key: 'power', label: 'The power of the band' },
     { key: 'costs', label: 'Costs & impact table' },
@@ -101,8 +102,11 @@
         sleeveColor: '#C41A2E',
         insert: true,
         qrCard: true,
-        insertCopy: ''
+        insertCopy: '',
+        options: [],
+        active: 0
       },
+      artworks: [],
       pricing: {
         currency: 'USD',
         prices: { mini: 29, classic: 39, braided: 39, heart: 45 },

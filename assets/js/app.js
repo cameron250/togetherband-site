@@ -15,7 +15,12 @@
   let presentIdx = 0;
   let deckList = [];
 
-  function load() {
+  function withExtras(list) {
+    (TB.extraSamples || []).forEach(x => { if (!list.some(p => p.id === x.id)) list.unshift(TB.newProject(x)); });
+    return list;
+  }
+  function load() { return withExtras(loadStored()); }
+  function loadStored() {
     try {
       const raw = localStorage.getItem(STORE);
       if (raw) {
@@ -73,6 +78,8 @@
     renderLogoPrev();
     renderVariantsEditor();
     renderTiersEditor();
+    renderOptionsEditor();
+    $('#sleeveNote').hidden = !(current.packaging.options || []).length;
     renderProjectSelect();
   }
 
@@ -196,7 +203,7 @@
   const ROPES = TB.SDGS.map(g => ({ c: g.color, t: `Goal ${g.n}` })).concat([{ c: '#2B2D31', t: 'Black' }]);
   function renderVariantsEditor() {
     const box = $('#variants');
-    if (box.contains(document.activeElement) && document.activeElement.type === 'color') return;
+    if (box.contains(document.activeElement) && ['color', 'text'].includes(document.activeElement.type)) return;
     box.innerHTML = current.edition.variants.map((v, i) => `
       <div class="var" data-i="${i}">
         <div class="var-band">${R.bandSVG(v, { noShadow: true })}</div>
@@ -209,6 +216,7 @@
             <div class="sw">${ROPES.map(r => `<button type="button" class="sw-b${r.c.toLowerCase() === String(v.rope).toLowerCase() ? ' on' : ''}" style="background:${r.c}" data-rope="${r.c}" title="${r.t}" aria-label="${r.t} cord"></button>`).join('')}
               <label class="sw-custom" title="Custom colour"><input type="color" data-v="rope" value="${v.rope}" aria-label="Custom cord colour"></label></div>
           </div>
+          <div class="f"><label for="v-cn-${i}">Colour name in titles (optional)</label><input id="v-cn-${i}" type="text" data-v="colorName" value="${R.esc(v.colorName || '')}" placeholder="e.g. Gold"></div>
           ${v.finish === 'metallic' ? `<div class="f"><label for="v-metal-${i}">Metallic clasp colour</label><div class="color-in"><input id="v-metal-${i}" type="color" data-v="metal" value="${v.metal}"></div></div>` : ''}
           <div class="var-act">
             <button type="button" class="linkbtn" data-vact="up"${i === 0 ? ' disabled' : ''}>Move up</button>
@@ -232,6 +240,80 @@
     if (act === 'dup') vs.splice(i + 1, 0, Object.assign({}, v, { id: TB.uid() }));
     if (act === 'up' && i > 0) vs.splice(i - 1, 0, vs.splice(i, 1)[0]);
     if (act) changed('variants');
+  }
+
+  // ----- packaging options -----
+  function renderOptionsEditor() {
+    const p = current;
+    const arts = p.artworks || [];
+    const ae = $('#arts');
+    if (!ae.contains(document.activeElement)) ae.innerHTML = arts.length ? arts.map((a, i) => `
+      <div class="art" data-a="${i}"><div class="art-th"><img src="${a.src}" alt=""></div>
+        <input type="text" data-af="name" value="${R.esc(a.name)}" aria-label="Artwork name">
+        <button type="button" class="linkbtn" data-adel>Remove</button></div>`).join('') : '<p class="hint">No artwork yet. Options can still use the partner logo.</p>';
+    const box = $('#opts');
+    if (box.contains(document.activeElement) && document.activeElement.type !== 'radio') return;
+    const os = p.packaging.options || [];
+    const artOpts = sel => `<option value="logo"${sel === 'logo' ? ' selected' : ''}>Partner logo</option>` + arts.map(a => `<option value="${a.id}"${sel === a.id ? ' selected' : ''}>${R.esc(a.name)}</option>`).join('');
+    box.innerHTML = os.map((o, i) => `
+      <div class="opt${i === (Number(p.packaging.active) || 0) ? ' on' : ''}" data-o="${i}">
+        <div class="opt-top">
+          <label class="opt-show"><input type="radio" name="activeOpt" data-oshow ${i === (Number(p.packaging.active) || 0) ? 'checked' : ''}> Show</label>
+          <input type="text" data-of="label" value="${R.esc(o.label || '')}" aria-label="Option name">
+        </div>
+        <div class="f-row f-row3">
+          <div class="f"><label for="o-art-${i}">Artwork</label><select id="o-art-${i}" data-of="art">${artOpts(o.art)}</select></div>
+          <div class="f"><label for="o-sl-${i}">Sleeve</label><div class="color-in"><input id="o-sl-${i}" type="color" data-of="sleeve" value="${o.sleeve}"></div></div>
+          <div class="f"><label for="o-ink-${i}">Artwork colour</label><div class="color-in"><input id="o-ink-${i}" type="color" data-of="ink" value="${o.ink}"></div></div>
+        </div>
+        <div class="var-act">
+          <button type="button" class="linkbtn" data-oact="dup">Duplicate</button>
+          <button type="button" class="linkbtn" data-oact="fit">${o.fit === 'contain' ? 'Fill sleeve with artwork' : 'Fit whole artwork'}</button>
+          <button type="button" class="linkbtn" data-oact="del">Remove</button>
+        </div>
+      </div>`).join('');
+  }
+  function onOption(e) {
+    const p = current;
+    const t = e.target;
+    const art = t.closest('.art');
+    if (art) {
+      const i = Number(art.dataset.a);
+      if (t.dataset.af && e.type !== 'click') { p.artworks[i].name = t.value; return changed('art'); }
+      if ('adel' in t.dataset && e.type === 'click') {
+        const id = p.artworks[i].id;
+        p.artworks.splice(i, 1);
+        p.packaging.options.forEach(o => { if (o.art === id) o.art = 'logo'; });
+        $('#arts').innerHTML = '';
+        return changed('art');
+      }
+      return;
+    }
+    const row = t.closest('.opt');
+    if (!row) return;
+    const i = Number(row.dataset.o);
+    const os = p.packaging.options;
+    if ('oshow' in t.dataset) { p.packaging.active = i; return changed('opt'); }
+    if (t.dataset.of && e.type !== 'click') { os[i][t.dataset.of] = t.value; return changed('opt'); }
+    const act = t.dataset.oact;
+    if (!act || e.type !== 'click') return;
+    if (act === 'del') { os.splice(i, 1); if (p.packaging.active >= os.length) p.packaging.active = Math.max(0, os.length - 1); }
+    if (act === 'dup') os.splice(i + 1, 0, Object.assign({}, os[i], { id: TB.uid(), label: (os[i].label || '') + ' copy' }));
+    if (act === 'fit') os[i].fit = os[i].fit === 'contain' ? 'cover' : 'contain';
+    $('#opts').innerHTML = '';
+    changed('opt');
+  }
+  function readArtwork(files) {
+    Array.from(files || []).filter(f => /^image\//.test(f.type)).forEach(file => {
+      const fr = new FileReader();
+      fr.onload = () => downscale(fr.result, file.type, url => {
+        current.artworks = current.artworks || [];
+        current.artworks.push({ id: TB.uid(), name: file.name.replace(/\.[^.]+$/, ''), src: url });
+        $('#arts').innerHTML = '';
+        changed('art');
+      });
+      fr.readAsDataURL(file);
+    });
   }
 
   // ----- tiers -----
@@ -266,8 +348,12 @@
     const p = current;
     const g = R.sdg(p.edition.sdg);
     $('#pkTitle').textContent = `${p.partner} × #TOGETHERBAND packaging`;
-    $('#pkSub').textContent = `${p.packaging.box === 'black' ? 'Black' : 'White'} embossed gift box with a ${R.esc(p.partner)} sleeve · Supporting Goal ${g.n}: ${g.name}`;
+    const ao = R.activeOption(p);
+    $('#pkSub').textContent = `${p.packaging.box === 'black' ? 'Black' : 'White'} embossed gift box with a ${p.partner} sleeve${ao ? ' · Showing: ' + (ao.label || 'option') : ''} · Supporting Goal ${g.n}: ${g.name}`;
     $('#b3wrap').innerHTML = R.box3D(p, view3d);
+    const os = p.packaging.options || [];
+    $('#pkOptsWrap').hidden = os.length < 2;
+    $('#pkOpts').innerHTML = os.map((o, i) => `<button type="button" class="pko-btn" data-opt="${i}" aria-pressed="${i === (Number(p.packaging.active) || 0)}">${R.optionCard(p, o, i, i === (Number(p.packaging.active) || 0))}</button>`).join('');
     $('#pkFront').innerHTML = R.packFace(p, 'front');
     $('#pkBack').innerHTML = R.packFace(p, 'back');
     let ex = '';
@@ -436,14 +522,38 @@
   function init() {
     fillStatic();
     const ed = $('#editor');
-    ed.addEventListener('input', e => { if (e.target.closest('.var')) return onVariant(e); if (e.target.closest('.tier')) return onTier(e); onBindInput(e); });
-    ed.addEventListener('change', e => { if (e.target.closest('.var')) return onVariant(e); if (e.target.closest('.tier')) return onTier(e); onBindInput(e); });
+    ed.addEventListener('input', e => { if (e.target.closest('.opt, .art')) return onOption(e); if (e.target.closest('.var')) return onVariant(e); if (e.target.closest('.tier')) return onTier(e); onBindInput(e); });
+    ed.addEventListener('change', e => { if (e.target.closest('.opt, .art')) return onOption(e); if (e.target.closest('.var')) return onVariant(e); if (e.target.closest('.tier')) return onTier(e); onBindInput(e); });
     $('#variants').addEventListener('click', onVariant);
     $('#tiers').addEventListener('click', onTier);
     $('#addVariant').onclick = () => {
       const last = current.edition.variants[current.edition.variants.length - 1];
       current.edition.variants.push(Object.assign({}, last, { id: TB.uid() }));
       changed('variants');
+    };
+    const oe = $('#arts').closest('.sec');
+    oe.addEventListener('click', onOption);
+    $('#f-art').onchange = e => { readArtwork(e.target.files); e.target.value = ''; };
+    $('#addOpt').onclick = () => {
+      const os = current.packaging.options = current.packaging.options || [];
+      const last = os[os.length - 1];
+      os.push(last ? Object.assign({}, last, { id: TB.uid(), label: 'Option ' + (os.length + 1) })
+        : { id: TB.uid(), label: 'Option 1', art: (current.artworks[0] || { id: 'logo' }).id, sleeve: current.brand.primary, ink: '#ffffff', fit: 'cover' });
+      $('#opts').innerHTML = '';
+      changed('opt');
+    };
+    $('#makeOpts').onclick = () => {
+      // Every artwork (or the logo) × each sleeve colour already used, keeping existing ink pairings.
+      const os = current.packaging.options = current.packaging.options || [];
+      const arts = (current.artworks || []).length ? current.artworks.map(a => ({ id: a.id, name: a.name })) : [{ id: 'logo', name: current.partner }];
+      const ways = [];
+      os.forEach(o => { if (!ways.some(w => w.sleeve === o.sleeve)) ways.push({ sleeve: o.sleeve, ink: o.ink, name: (o.label || '').split(' · ').pop() }); });
+      if (!ways.length) ways.push({ sleeve: current.brand.primary, ink: '#ffffff', name: 'Brand colour' });
+      current.packaging.options = [];
+      arts.forEach(a => ways.forEach(w => current.packaging.options.push({ id: TB.uid(), label: `${a.name} · ${w.name}`, art: a.id, sleeve: w.sleeve, ink: w.ink, fit: 'cover' })));
+      current.packaging.active = 0;
+      $('#opts').innerHTML = '';
+      changed('opt');
     };
     $('#addTier').onclick = () => {
       const t = current.pricing.tiers;
@@ -526,6 +636,7 @@
     };
     window.addEventListener('hashchange', showTab);
     bind3D();
+    $('#pkOpts').addEventListener('click', e => { const b = e.target.closest('[data-opt]'); if (b) { current.packaging.active = Number(b.dataset.opt); $('#opts').innerHTML = ''; changed('opt'); } });
     showTab();
     syncForm();
     renderAll();

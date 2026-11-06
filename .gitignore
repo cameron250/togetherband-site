@@ -1,2 +1,4 @@
 node_modules/
 .DS_Store
+# Client artwork is shared privately, not committed
+assets/partners/

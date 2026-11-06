@@ -136,7 +136,7 @@
           </select>
         </div>
         <div class="f">
-          <label for="f-sleeve">Sleeve colour</label>
+          <label for="f-sleeve">Sleeve colour <span class="hint" id="sleeveNote" hidden>(set per option below)</span></label>
           <select id="f-sleeve" data-bind="packaging.sleeve">
             <option value="brand">Brand colour</option>
             <option value="sdg">Goal colour</option>
@@ -156,6 +156,16 @@
         <label for="f-inscopy">Insert copy</label>
         <textarea id="f-inscopy" data-bind="packaging.insertCopy" rows="3" placeholder="Leave blank to use the standard impact copy"></textarea>
       </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Packaging options</summary>
+      <p class="hint">Show the client several sleeve designs side by side. Each option pairs an artwork (or the partner logo) with a sleeve colour and a colour for the artwork. Line or single-colour artwork on a transparent background works best.</p>
+      <span class="lbl">Sleeve artwork</span>
+      <div class="arts" id="arts"></div>
+      <div><label class="btn btn-small" for="f-art">Upload artwork</label><input id="f-art" type="file" accept="image/png,image/svg+xml,image/webp" class="sr" multiple></div>
+      <div class="opts" id="opts"></div>
+      <div class="opt-add"><button class="btn btn-small" id="addOpt" type="button">Add option</button> <button class="btn btn-small btn-ghost" id="makeOpts" type="button">Create every artwork × colour combination</button></div>
     </details>
 
     <details class="sec">
@@ -246,6 +256,10 @@
             <button class="btn btn-small" type="button" data-view="back">Underside</button>
             <span class="hint">Drag the box to turn it.</span>
           </div>
+        </div>
+        <div class="pk-opts" id="pkOptsWrap" hidden>
+          <h2 class="pk-h2">Packaging options <span class="pk-h2-sub">Select one to show it on the box, insert and slides</span></h2>
+          <div class="pk-opt-grid" id="pkOpts"></div>
         </div>
         <div class="pk-flatrow">
           <figure class="pk-fig"><div id="pkFront"></div><figcaption>Front</figcaption></figure>
