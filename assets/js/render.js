@@ -669,11 +669,13 @@
     if (on('unboxing')) add('unboxing', `<div class="slide s-unbox">` +
       `<div class="s-ub-box">${box3D(p, { rx: 52, rz: -30 })}</div>` +
       (p.packaging.insert ? `<div class="s-ub-ins${isCard(p) ? ' s-ub-card' : ''}">${insertFront(p)}</div>` : '') +
-      (p.packaging.qrCard ? `<div class="s-ub-qr">${qrCard(p)}</div>` : '') +
+      (p.packaging.qrCard ? `<div class="s-ub-qr">${qrCard(p)}</div>`
+        : (p.packaging.insert && isCard(p) ? `<div class="s-ub-qr s-ub-cardback">${cardBack(p)}</div>` : '')) +
       `<div class="s-ub-t s-ub-t1"><b>#TOGETHERBAND range</b><br>Award-winning waste materials: Parley Ocean Plastic® thread and Humanium confiscated illegal firearm metal.</div>` +
       `<div class="s-ub-t s-ub-t2"><b>${ED} branded bellyband</b><br>Your artwork on a recyclable bellyband in your brand colours, wrapped around our embossed gift box.</div>` +
       (p.packaging.insert ? `<div class="s-ub-t s-ub-t3"><b>#TOGETHERBAND × ${ED}</b><br>${isCard(p) ? 'A printed card insert carries your message on the front and a QR code on the back.*' : 'A concertina insert unpacks the product, the campaign and your key messages.*'}</div>` : '') +
-      (p.packaging.qrCard ? `<div class="s-ub-t s-ub-t4"><b>A direct link to your campaign.</b><br>An optional QR card* points people to ${esc(p.edition.url)}.</div>` : '') +
+      (p.packaging.qrCard ? `<div class="s-ub-t s-ub-t4"><b>A direct link to your campaign.</b><br>An optional QR card* points people to ${esc(p.edition.url)}.</div>`
+        : (p.packaging.insert && isCard(p) ? `<div class="s-ub-t s-ub-t4"><b>The back of the card.</b><br>A QR code takes people straight to ${esc(insertUrl(p))}.</div>` : '')) +
       `<div class="s-note">* Optional packaging elements are available at additional cost.</div>${foot()}</div>`, 'Packaging contents');
 
     const opts = (p.packaging.options || []);
