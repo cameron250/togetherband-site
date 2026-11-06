@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Togetherband B2B Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;600;700&family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Josefin+Sans:wght@400;600&family=EB+Garamond:wght@400;500&family=Cormorant+SC:wght@500;600&family=Montserrat:wght@700;800&family=Playfair+Display:ital@1&display=swap">
+<link rel="stylesheet" href="assets/css/studio.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-tb" id="brandMark"></span>
+    <span class="brand-sub">B2B Studio</span>
+  </div>
+  <div class="proj">
+    <label for="projectSelect" class="sr">Partner project</label>
+    <select id="projectSelect"></select>
+    <button class="btn btn-primary" id="newBtn" type="button">New partner</button>
+    <button class="btn" id="dupBtn" type="button">Duplicate</button>
+    <span class="del-wrap">
+      <button class="btn btn-ghost" id="delBtn" type="button">Delete</button>
+      <span class="del-confirm" id="delConfirm" hidden>Delete this project?
+        <button class="btn btn-danger" id="delYes" type="button">Delete</button>
+        <button class="btn btn-ghost" id="delNo" type="button">Keep</button></span>
+    </span>
+    <button class="btn btn-ghost" id="dataBtn" type="button">Save / load file</button>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="editor" id="editor" aria-label="Project settings">
+
+    <details class="sec" open>
+      <summary>Partner &amp; branding</summary>
+      <div class="f">
+        <label for="f-partner">Partner name</label>
+        <input id="f-partner" data-bind="partner" type="text" autocomplete="off">
+      </div>
+      <div class="f">
+        <span class="lbl">Logo</span>
+        <div class="logo-drop" id="logoDrop" tabindex="0">
+          <div class="logo-prev" id="logoPrev"></div>
+          <div class="logo-actions">
+            <label class="btn btn-small" for="f-logo">Upload logo</label>
+            <input id="f-logo" type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp" class="sr">
+            <button class="btn btn-small btn-ghost" id="logoClear" type="button">Use wordmark</button>
+            <p class="hint">PNG or SVG with a transparent background works best. Drop a file here or paste an image.</p>
+          </div>
+        </div>
+      </div>
+      <div class="f-row" id="wordmarkFields">
+        <div class="f">
+          <label for="f-wordmark">Wordmark text</label>
+          <input id="f-wordmark" data-bind="brand.wordmark" type="text">
+        </div>
+        <div class="f">
+          <label for="f-wmfont">Wordmark style</label>
+          <select id="f-wmfont" data-bind="brand.wordmarkFont">
+            <option value="serif">Serif, lower case</option>
+            <option value="serif-caps">Serif capitals</option>
+            <option value="sans">Bold sans</option>
+            <option value="display">Condensed</option>
+            <option value="script">Italic display</option>
+          </select>
+        </div>
+        <div class="f f-wide">
+          <label for="f-wmsub">Strapline under wordmark (optional)</label>
+          <input id="f-wmsub" data-bind="brand.wordmarkSub" type="text">
+        </div>
+      </div>
+      <div class="f-row">
+        <div class="f">
+          <label for="f-primary">Brand colour</label>
+          <div class="color-in"><input id="f-primary" data-bind="brand.primary" type="color"><input id="f-primaryHex" data-bind="brand.primary" data-hex type="text" spellcheck="false" aria-label="Brand colour hex"></div>
+          <button class="linkbtn" id="pickFromLogo" type="button" hidden>Take colour from logo</button>
+        </div>
+        <div class="f">
+          <label for="f-accent">Presentation accent</label>
+          <div class="color-in"><input id="f-accent" data-bind="brand.deckAccent" type="color"><input data-bind="brand.deckAccent" data-hex type="text" spellcheck="false" aria-label="Presentation accent hex"></div>
+          <button class="linkbtn" id="accentMatch" type="button">Match brand colour</button>
+        </div>
+      </div>
+      <div class="f-row">
+        <div class="f">
+          <label for="f-tone">Logo on coloured sleeve</label>
+          <select id="f-tone" data-bind="brand.logoTone">
+            <option value="white">Knock out to white</option>
+            <option value="black">Knock out to black</option>
+            <option value="original">Original colours</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="f-scale">Logo size <output id="scaleOut"></output></label>
+          <input id="f-scale" data-bind="brand.logoScale" data-num type="range" min="30" max="90" step="1">
+        </div>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Edition &amp; bands</summary>
+      <div class="f-row">
+        <div class="f">
+          <label for="f-edition">Edition name on products</label>
+          <input id="f-edition" data-bind="edition.name" type="text">
+        </div>
+        <div class="f">
+          <label for="f-sdg">Supported Goal</label>
+          <select id="f-sdg" data-bind="edition.sdg" data-num></select>
+        </div>
+      </div>
+      <div class="f">
+        <label for="f-url">Campaign link (QR code)</label>
+        <input id="f-url" data-bind="edition.url" type="text" spellcheck="false">
+      </div>
+      <div class="f">
+        <label for="f-made">Origin line</label>
+        <input id="f-made" data-bind="edition.madeIn" type="text">
+      </div>
+      <div class="variants" id="variants"></div>
+      <button class="btn btn-small" id="addVariant" type="button">Add band variant</button>
+    </details>
+
+    <details class="sec" open>
+      <summary>Packaging</summary>
+      <div class="f-row">
+        <div class="f">
+          <label for="f-box">Gift box</label>
+          <select id="f-box" data-bind="packaging.box">
+            <option value="white">White, embossed</option>
+            <option value="black">Black, embossed</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="f-sleeve">Sleeve colour</label>
+          <select id="f-sleeve" data-bind="packaging.sleeve">
+            <option value="brand">Brand colour</option>
+            <option value="sdg">Goal colour</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="f" id="sleeveCustom">
+          <label for="f-sleevec">Custom sleeve</label>
+          <div class="color-in"><input id="f-sleevec" data-bind="packaging.sleeveColor" type="color"><input data-bind="packaging.sleeveColor" data-hex type="text" spellcheck="false" aria-label="Custom sleeve hex"></div>
+        </div>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" data-bind="packaging.insert"> Concertina booklet insert</label>
+        <label><input type="checkbox" data-bind="packaging.qrCard"> QR code card</label>
+      </div>
+      <div class="f">
+        <label for="f-inscopy">Insert copy</label>
+        <textarea id="f-inscopy" data-bind="packaging.insertCopy" rows="3" placeholder="Leave blank to use the standard impact copy"></textarea>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Pricing &amp; impact</summary>
+      <div class="f-row">
+        <div class="f">
+          <label for="f-cur">Currency</label>
+          <select id="f-cur" data-bind="pricing.currency">
+            <option value="USD">US dollar ($)</option>
+            <option value="GBP">Pound sterling (£)</option>
+            <option value="EUR">Euro (€)</option>
+            <option value="CHF">Swiss franc (CHF)</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="f-pack">Bespoke packaging, per unit</label>
+          <input id="f-pack" data-bind="pricing.packaging" data-num type="number" min="0" step="0.5">
+        </div>
+      </div>
+      <span class="lbl">Standard price per band</span>
+      <div class="f-row f-row4">
+        <div class="f"><label for="f-pmini">Mini</label><input id="f-pmini" data-bind="pricing.prices.mini" data-num type="number" min="0" step="1"></div>
+        <div class="f"><label for="f-pclassic">Classic</label><input id="f-pclassic" data-bind="pricing.prices.classic" data-num type="number" min="0" step="1"></div>
+        <div class="f"><label for="f-pbraided">Braided</label><input id="f-pbraided" data-bind="pricing.prices.braided" data-num type="number" min="0" step="1"></div>
+        <div class="f"><label for="f-pheart">Heart</label><input id="f-pheart" data-bind="pricing.prices.heart" data-num type="number" min="0" step="1"></div>
+      </div>
+      <span class="lbl">Volume tiers</span>
+      <div class="tiers" id="tiers"></div>
+      <button class="btn btn-small" id="addTier" type="button">Add tier</button>
+      <div class="f-row">
+        <div class="f">
+          <label for="f-don">Donation, % of band revenue</label>
+          <input id="f-don" data-bind="pricing.donationPct" data-num type="number" min="0" max="100" step="1">
+        </div>
+        <div class="f">
+          <label for="f-ben">Donation goes to</label>
+          <input id="f-ben" data-bind="pricing.beneficiary" type="text">
+        </div>
+      </div>
+      <span class="lbl">Impact per band</span>
+      <div class="f-row f-row3">
+        <div class="f"><label for="f-trees">Trees</label><input id="f-trees" data-bind="pricing.impact.trees" data-num type="number" min="0" step="1"></div>
+        <div class="f"><label for="f-co2">CO₂ kg</label><input id="f-co2" data-bind="pricing.impact.co2" data-num type="number" min="0" step="1"></div>
+        <div class="f"><label for="f-meals">Meals</label><input id="f-meals" data-bind="pricing.impact.meals" data-num type="number" min="0" step="1"></div>
+      </div>
+      <div class="f">
+        <label for="f-note">Pricing note</label>
+        <input id="f-note" data-bind="pricing.note" type="text">
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Presentation</summary>
+      <div class="f">
+        <label for="f-intro">About this partnership (adds a slide)</label>
+        <textarea id="f-intro" data-bind="deck.intro" rows="4" placeholder="Why this partner, what the edition supports, launch moment…"></textarea>
+      </div>
+      <span class="lbl">Slides to include</span>
+      <div class="checks checks-col" id="slideToggles"></div>
+    </details>
+
+    <p class="saved" id="savedNote" aria-live="polite"></p>
+  </aside>
+
+  <section class="stage" aria-label="Preview">
+    <nav class="tabs" role="tablist">
+      <a href="#packaging" role="tab" data-tab="packaging">Packaging</a>
+      <a href="#deck" role="tab" data-tab="deck">Presentation</a>
+      <a href="#costs" role="tab" data-tab="costs">Costs &amp; impact</a>
+    </nav>
+
+    <div class="panel" id="panel-packaging" data-panel="packaging">
+      <div class="panel-head">
+        <div>
+          <h1 id="pkTitle">Packaging mockup</h1>
+          <p class="sub" id="pkSub"></p>
+        </div>
+        <div class="tools">
+          <button class="btn" type="button" data-export="#pkSheet">Export image</button>
+        </div>
+      </div>
+      <div class="pk-sheet" id="pkSheet">
+        <div class="pk-hero">
+          <div class="b3-wrap" id="b3wrap"></div>
+          <div class="b3-ctrl">
+            <button class="btn btn-small" type="button" data-view="front">Top</button>
+            <button class="btn btn-small" type="button" data-view="angle">Angle</button>
+            <button class="btn btn-small" type="button" data-view="back">Underside</button>
+            <span class="hint">Drag the box to turn it.</span>
+          </div>
+        </div>
+        <div class="pk-flatrow">
+          <figure class="pk-fig"><div id="pkFront"></div><figcaption>Front</figcaption></figure>
+          <figure class="pk-fig"><div id="pkBack"></div><figcaption>Back</figcaption></figure>
+        </div>
+        <div class="pk-extras" id="pkExtras"></div>
+        <h2 class="pk-h2">Band variants</h2>
+        <div class="pk-variants" id="pkVariants"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-deck" data-panel="deck" hidden>
+      <div class="panel-head">
+        <div>
+          <h1>Presentation</h1>
+          <p class="sub" id="deckSub"></p>
+        </div>
+        <div class="tools">
+          <button class="btn btn-primary" type="button" id="presentBtn">Present</button>
+          <button class="btn" type="button" id="printBtn" data-standalone>Print / save PDF</button>
+        </div>
+      </div>
+      <div class="deck" id="deck"></div>
+    </div>
+
+    <div class="panel" id="panel-costs" data-panel="costs" hidden>
+      <div class="panel-head">
+        <div>
+          <h1>Costs &amp; impact</h1>
+          <p class="sub">Volume pricing and impact for every band style in this edition.</p>
+        </div>
+      </div>
+      <div class="quote" id="quote">
+        <div class="q-in">
+          <div class="f"><label for="q-units">Quantity</label><input id="q-units" type="number" min="1" step="1" value="150"></div>
+          <div class="f"><label for="q-style">Band style</label><select id="q-style"></select></div>
+        </div>
+        <div class="q-out" id="quoteOut"></div>
+      </div>
+      <div class="ct-wrap" id="costTable"></div>
+      <p class="hint" id="costNote"></p>
+    </div>
+  </section>
+</main>
+
+<div class="present" id="present" hidden>
+  <div class="present-stage" id="presentStage"></div>
+  <div class="present-bar">
+    <button class="btn btn-ghost" id="prevSlide" type="button" aria-label="Previous slide">←</button>
+    <span id="slideCount"></span>
+    <button class="btn btn-ghost" id="nextSlide" type="button" aria-label="Next slide">→</button>
+    <button class="btn btn-ghost" id="closePresent" type="button">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head"><h2 id="modalTitle"></h2><button class="btn btn-ghost" id="modalClose" type="button">Close</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="print-deck" id="printDeck" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/render.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
