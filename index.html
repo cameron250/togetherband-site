@@ -156,7 +156,7 @@
         </div>
       </div>
       <div class="checks">
-        <label><input type="checkbox" data-bind="packaging.insert"> Concertina booklet insert</label>
+        <label><input type="checkbox" data-bind="packaging.insert"> Insert</label>
         <label><input type="checkbox" data-bind="packaging.qrCard"> QR code card</label>
         <label><input type="checkbox" data-bind="packaging.backPattern"> Carry artwork lines round the back of the bellyband</label>
       </div>
@@ -167,6 +167,19 @@
       <div class="f">
         <label for="f-backc">Back of box text</label>
         <textarea id="f-backc" data-bind="packaging.backCopy" rows="3"></textarea>
+      </div>
+      <div class="f-row">
+        <div class="f">
+          <label for="f-instyle">Insert style</label>
+          <select id="f-instyle" data-bind="packaging.insertStyle">
+            <option value="gatefold">Concertina booklet</option>
+            <option value="card">Single card, front and back</option>
+          </select>
+        </div>
+        <div class="f">
+          <label for="f-insqr">Insert QR code link</label>
+          <input id="f-insqr" data-bind="packaging.insertQrUrl" type="text" spellcheck="false" placeholder="Same as campaign link">
+        </div>
       </div>
       <div class="f">
         <label for="f-inscopy">Insert copy</label>

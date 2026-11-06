@@ -365,7 +365,11 @@
     $('#pkFront').innerHTML = R.packFace(p, 'front');
     $('#pkBack').innerHTML = R.packFace(p, 'back');
     let ex = '';
-    if (p.packaging.insert) ex += `<figure class="pk-fig pk-fig-wide"><div>${R.insertFront(p)}</div><figcaption>Booklet insert, front</figcaption></figure><figure class="pk-fig pk-fig-wide"><div>${R.insertBack(p)}</div><figcaption>Booklet insert, back</figcaption></figure>`;
+    if (p.packaging.insert) {
+      const kind = R.isCard(p) ? 'Card insert' : 'Booklet insert';
+      const cls = R.isCard(p) ? 'pk-fig pk-fig-card' : 'pk-fig pk-fig-wide';
+      ex += `<figure class="${cls}"><div>${R.insertFront(p)}</div><figcaption>${kind}, front</figcaption></figure><figure class="${cls}"><div>${R.insertBack(p)}</div><figcaption>${kind}, back</figcaption></figure>`;
+    }
     if (p.packaging.qrCard) ex += `<figure class="pk-fig pk-fig-qr"><div>${R.qrCard(p)}</div><figcaption>QR card</figcaption></figure>`;
     $('#pkExtras').innerHTML = ex;
     $('#pkExtras').hidden = !ex;

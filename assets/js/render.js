@@ -435,11 +435,26 @@
     return `Your band is made from Parley Ocean Plastic® thread and recycled illegal firearm metal by women artisans in Kathmandu. ` +
       `Each one plants ${im.trees} tree${im.trees == 1 ? '' : 's'}, provides ${im.meals} meals for families in need and supports ${p.pricing.beneficiary}.`;
   }
+  // Single card insert: the message on the front, a QR code on the back.
+  const isCard = p => p.packaging.insertStyle === 'card';
+  const insertHeading = p => p.packaging.backHeading ? esc(p.packaging.backHeading).replace(/\n/g, '<br>') : esc(p.edition.name) + ' ×<br>#TOGETHERBAND';
+  const insertUrl = p => (p.packaging.insertQrUrl || '').trim() || p.edition.url;
+  function cardFront(p) {
+    const L = look(p);
+    return `<div class="icard icard-front"><div class="icard-in"><div class="icard-h">${insertHeading(p)}</div><p class="icard-copy">${esc(insertCopy(p))}</p></div>` +
+      `<div class="icard-foot" style="background:${L.sleeve}"></div></div>`;
+  }
+  function cardBack(p) {
+    const u = insertUrl(p);
+    return `<div class="icard icard-back"><div class="icard-qr">${qrSVG(u, '#141414')}<div class="icard-url">${esc(u)}</div></div></div>`;
+  }
   function insertFront(p) {
+    if (isCard(p)) return cardFront(p);
     return `<div class="ins ins-front"><div class="ins-p ins-fold-l"><div class="ins-h">${p.packaging.backHeading ? esc(p.packaging.backHeading).replace(/\n/g, '<br>') : esc(p.edition.name) + ' ×<br>#TOGETHERBAND'}</div><p>${esc(insertCopy(p))}</p></div>` +
       `<div class="ins-p ins-qr">${qrSVG(p.edition.url, '#141414')}<div class="ins-url">${esc(p.edition.url)}</div></div></div>`;
   }
   function insertBack(p) {
+    if (isCard(p)) return cardBack(p);
     const L = look(p);
     const sc = L.sleeve;
     const ink = L.ink || onColor(sc);
@@ -600,11 +615,11 @@
 
     if (on('unboxing')) add('unboxing', `<div class="slide s-unbox">` +
       `<div class="s-ub-box">${box3D(p, { rx: 52, rz: -30 })}</div>` +
-      (p.packaging.insert ? `<div class="s-ub-ins">${insertFront(p)}</div>` : '') +
+      (p.packaging.insert ? `<div class="s-ub-ins${isCard(p) ? ' s-ub-card' : ''}">${insertFront(p)}</div>` : '') +
       (p.packaging.qrCard ? `<div class="s-ub-qr">${qrCard(p)}</div>` : '') +
       `<div class="s-ub-t s-ub-t1"><b>#TOGETHERBAND range</b><br>Award-winning waste materials: Parley Ocean Plastic® thread and Humanium confiscated illegal firearm metal.</div>` +
       `<div class="s-ub-t s-ub-t2"><b>${ED} branded bellyband</b><br>Your artwork on a recyclable bellyband in your brand colours, wrapped around our embossed gift box.</div>` +
-      (p.packaging.insert ? `<div class="s-ub-t s-ub-t3"><b>#TOGETHERBAND × ${ED}</b><br>A concertina insert unpacks the product, the campaign and your key messages.*</div>` : '') +
+      (p.packaging.insert ? `<div class="s-ub-t s-ub-t3"><b>#TOGETHERBAND × ${ED}</b><br>${isCard(p) ? 'A printed card insert carries your message on the front and a QR code on the back.*' : 'A concertina insert unpacks the product, the campaign and your key messages.*'}</div>` : '') +
       (p.packaging.qrCard ? `<div class="s-ub-t s-ub-t4"><b>A direct link to your campaign.</b><br>An optional QR card* points people to ${esc(p.edition.url)}.</div>` : '') +
       `<div class="s-note">* Optional packaging elements are available at additional cost.</div>${foot()}</div>`, 'Packaging contents');
 
@@ -612,8 +627,8 @@
     if (on('options') && opts.length > 1) add('options', `<div class="slide s-product s-opts"><div class="s-prod-h" style="color:${A}"><b>${ED}</b> <span>PACKAGING OPTIONS</span></div>` +
       `<div class="s-opt-grid" style="--cols:${opts.length > 4 ? 3 : opts.length}">${opts.map((o, i) => optionCard(p, o, i, false)).join('')}</div>${foot()}</div>`, 'Packaging options');
 
-    if (on('insert') && p.packaging.insert) add('insert', `<div class="slide s-product"><div class="s-prod-h" style="color:${A}"><b>${ED}</b> <span>BOOKLET INSERT</span></div>` +
-      `<div class="s-ins-row"><div class="s-prod-c">${insertFront(p)}<span>FRONT</span></div><div class="s-prod-c">${insertBack(p)}<span>BACK</span></div></div>${foot()}</div>`, 'Booklet insert');
+    if (on('insert') && p.packaging.insert) add('insert', `<div class="slide s-product"><div class="s-prod-h" style="color:${A}"><b>${ED}</b> <span>${isCard(p) ? 'CARD INSERT' : 'BOOKLET INSERT'}</span></div>` +
+      `<div class="s-ins-row${isCard(p) ? ' s-card-row' : ''}"><div class="s-prod-c">${insertFront(p)}<span>FRONT</span></div><div class="s-prod-c">${insertBack(p)}<span>BACK</span></div></div>${foot()}</div>`, isCard(p) ? 'Card insert' : 'Booklet insert');
 
     if (on('power')) add('power', `<div class="slide s-power" style="background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),url(${IMG}crowd-aerial.jpg)">` +
       `<div class="s-pw-band">${bandSVG(Object.assign({}, hero, { style: 'mini' }), { noShadow: true })}</div>` +
@@ -637,6 +652,6 @@
   TB.render = {
     esc, mix, shade, tint, onColor, luma, sdg, money, num, sleeveColor,
     tbLogo, partnerLogo, qrSVG, hasGoal, look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
-    insertFront, insertBack, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
+    insertFront, insertBack, isCard, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
   };
 })(window);

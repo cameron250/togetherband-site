@@ -107,6 +107,8 @@
         backHeading: '',
         backCopy: '',
         backPattern: true,
+        insertStyle: 'gatefold',
+        insertQrUrl: '',
         options: [],
         active: 0
       },
