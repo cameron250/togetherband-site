@@ -62,7 +62,7 @@
   // ---------- editor ----------
   function fillStatic() {
     $('#brandMark').innerHTML = R.tbLogo({ bottletop: false });
-    $('#f-sdg').innerHTML = TB.SDGS.map(g => `<option value="${g.n}">Goal ${g.n}: ${g.name}</option>`).join('');
+    $('#f-sdg').innerHTML = '<option value="0">Not linked to a Goal</option>' + TB.SDGS.map(g => `<option value="${g.n}">Goal ${g.n}: ${g.name}</option>`).join('');
     $('#slideToggles').innerHTML = TB.SLIDES.map(s => `<label><input type="checkbox" data-bind="deck.slides.${s.key}"> ${s.label}</label>`).join('');
     $$('[data-standalone]').forEach(el => { el.hidden = framed; });
   }
@@ -357,7 +357,7 @@
     const g = R.sdg(p.edition.sdg);
     $('#pkTitle').textContent = `${p.partner} × #TOGETHERBAND packaging`;
     const ao = R.activeOption(p);
-    $('#pkSub').textContent = `${p.packaging.box === 'black' ? 'Black' : 'White'} embossed gift box with a ${p.partner} bellyband${ao ? ' · Showing: ' + (ao.label || 'option') : ''} · Supporting Goal ${g.n}: ${g.name}`;
+    $('#pkSub').textContent = `${p.packaging.box === 'black' ? 'Black' : 'White'} embossed gift box with a ${p.partner} bellyband${ao ? ' · Showing: ' + (ao.label || 'option') : ''}${R.hasGoal(p) ? ` · Supporting Goal ${g.n}: ${g.name}` : ''}`;
     $('#b3wrap').innerHTML = R.box3D(p, view3d);
     const os = p.packaging.options || [];
     $('#pkOptsWrap').hidden = os.length < 2;
@@ -640,6 +640,7 @@
     // Product photos are recoloured asynchronously wherever they appear.
     new MutationObserver(() => R.hydrateBands(document)).observe(document.body, { childList: true, subtree: true });
     $('#goalCords').onclick = () => {
+      if (!R.hasGoal(current)) { $('#savedNote').textContent = 'Choose a Goal first: this edition is not linked to one.'; return; }
       const c = R.sdg(current.edition.sdg).color;
       current.edition.variants.forEach(v => { v.rope = c; });
       changed('variants');

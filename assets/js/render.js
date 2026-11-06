@@ -30,6 +30,7 @@
   }
   const onColor = c => (luma(c) > 0.42 ? '#141414' : '#ffffff');
   const sdg = n => SDGS.find(s => s.n === Number(n)) || SDGS[0];
+  const hasGoal = p => SDGS.some(s => s.n === Number(p.edition.sdg));
 
   function money(v, code, dp) {
     const sym = CURRENCIES[code] || '$';
@@ -57,7 +58,7 @@
   function sleeveColor(p) { return look(p).sleeve; }
   function baseSleeve(p) {
     const k = p.packaging.sleeve;
-    if (k === 'sdg') return sdg(p.edition.sdg).color;
+    if (k === 'sdg' && hasGoal(p)) return sdg(p.edition.sdg).color;
     if (k === 'custom') return p.packaging.sleeveColor || p.brand.primary;
     return p.brand.primary;
   }
@@ -399,7 +400,7 @@
       const lines = side => carry ? tintImg(L.art, L.ink || '#ffffff', `pk-artimg pk-artstrip pk-artstrip-${side}`) : '';
       const left = p.packaging.backHeading
         ? `<div class="pkb-label pkb-fit"><div class="pkb-h"><b>${esc(p.packaging.backHeading).replace(/\n/g, '<br>')}</b></div><div class="pkb-copy">${esc(p.packaging.backCopy || '')}</div></div>`
-        : `<div class="pkb-label pkb-fit"><div class="pkb-h"><b>#TOGETHERBAND</b><br><b>EDITION</b> <span>SUPPORTING</span><br><b>SDG ${g.n}:</b><br><b>${esc(g.name.toUpperCase())}</b></div><div class="pkb-made">${made}</div></div>`;
+        : `<div class="pkb-label pkb-fit"><div class="pkb-h"><b>#TOGETHERBAND</b><br>${hasGoal(p) ? `<b>EDITION</b> <span>SUPPORTING</span><br><b>SDG ${g.n}:</b><br><b>${esc(g.name.toUpperCase())}</b>` : `<span>SPECIAL</span> <b>EDITION</b>`}</div><div class="pkb-made">${made}</div></div>`;
       sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
         `<div class="pkb-flap pkb-flap-l">${lines('l')}<div class="pkb-half">${left}</div></div>` +
         `<div class="pkb-flap pkb-flap-r" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('r')}` +
@@ -442,7 +443,7 @@
     const L = look(p);
     const sc = L.sleeve;
     const ink = L.ink || onColor(sc);
-    return `<div class="ins ins-back"><div class="ins-p"><div class="ins-panel" style="background:${sc};color:${ink}">${tbLogo({ color: ink })}<div class="ins-sdg">SDG ${sdg(p.edition.sdg).n} · ${esc(sdg(p.edition.sdg).name)}</div></div></div>` +
+    return `<div class="ins ins-back"><div class="ins-p"><div class="ins-panel" style="background:${sc};color:${ink}">${tbLogo({ color: ink })}${hasGoal(p) ? `<div class="ins-sdg">SDG ${sdg(p.edition.sdg).n} · ${esc(sdg(p.edition.sdg).name)}</div>` : ''}</div></div>` +
       `<div class="ins-p ins-fold-r${L.art ? ' pk-art' : ''}" style="background:${L.art ? sc : shade(sc, 0.12)}">${L.art ? sleeveArt(L) : sleeveLogo(p, L, { maxH: 50, scale: 78 })}</div></div>`;
   }
   function qrCard(p) {
@@ -549,7 +550,7 @@
       `<div class="s-grid4">${['atelier-yawanawa|BOTTLETOP Yawanawá Rainforest Atelier', 'humanium-metal|Humanium Metal firearm destruction', 'parley-cleanup|Parley Ocean Plastic® beach clean-up', BR ? 'yawanawa-community|Yawanawá community, Amazon Rainforest, Brazil' : 'atelier-kathmandu|BOTTLETOP Atelier Kathmandu, Nepal'].map(s => { const [f, c] = s.split('|'); return `<figure style="background-image:url(${IMG}${f}.jpg)"><figcaption>${c}</figcaption></figure>`; }).join('')}` +
       `<div class="s-grid4-band">${bandSVG(Object.assign({}, hero, { style: hero.style === 'heart' ? 'heart' : 'mini' }), { noShadow: true })}</div></div>${foot()}</div>`, 'Our mission');
 
-    if (on('world2030')) add('world2030', `<div class="slide s-split s-rev">` +
+    if (on('world2030') && hasGoal(p)) add('world2030', `<div class="slide s-split s-rev">` +
       `<figure class="s-photo" style="background-image:url(${IMG}un-general-assembly.jpg)"><figcaption>Former UN Secretary General Ban Ki Moon and #TOGETHERBAND co-creator Cameron Saul at UN General Assembly</figcaption></figure>` +
       `<div class="s-txt">${hl('A', 'BETTER', 'WORLD BY 2030')}` +
       `<p><b>#TOGETHERBAND</b> is a campaign that supports the 17 Sustainable Development Goals, the United Nations’ route map to build a better world by 2030.</p>` +
@@ -558,10 +559,10 @@
 
     if (on('change')) add('change', `<div class="slide s-split">` +
       `<div class="s-txt"><h2 class="s-h">#TOGETHERBAND<br>DRIVES <em style="color:${A}">CHANGE</em></h2>` +
-      `<p><b class="s-cap">We inform</b><br>Our campaign raises awareness of the critical issues the Goals address through creativity and culture.</p>` +
+      `<p><b class="s-cap">We inform</b><br>Our campaign raises awareness of ${hasGoal(p) ? 'the critical issues the Goals address' : 'critical social and environmental issues'} through creativity and culture.</p>` +
       `<p><b class="s-cap">We inspire action</b><br>A global network of social entrepreneurs, activists, innovators, grassroots charities and ambassadors from across culture and sport, working to drive change for a sustainable future.</p>` +
       `<p><b class="s-cap">We empower</b><br>From the artisans who make our bands to the people who wear them and share our story, #TOGETHERBAND exists to bring people together to protect our planet.</p></div>` +
-      `<div class="s-grid4">${['ambassador-bjk|Billie Jean King · Goal 5', 'ambassador-db|David Beckham · Goal 3', 'ambassador-lh|Lewis Hamilton · Goal 4', 'ambassador-jj|Jameela Jamil · Goal 5'].map(s => { const [f, c] = s.split('|'); return `<figure style="background-image:url(${IMG}${f}.jpg)"><figcaption>${c}<br>#TOGETHERBAND AMBASSADOR</figcaption></figure>`; }).join('')}</div>${foot()}</div>`, 'Drives change');
+      `<div class="s-grid4">${['ambassador-bjk|Billie Jean King · Goal 5', 'ambassador-db|David Beckham · Goal 3', 'ambassador-lh|Lewis Hamilton · Goal 4', 'ambassador-jj|Jameela Jamil · Goal 5'].map(s => { const [f, c] = s.split('|'); return `<figure style="background-image:url(${IMG}${f}.jpg)"><figcaption>${hasGoal(p) ? c : c.split(' · ')[0]}<br>#TOGETHERBAND AMBASSADOR</figcaption></figure>`; }).join('')}</div>${foot()}</div>`, 'Drives change');
 
     if (on('materials')) add('materials', `<div class="slide s-split s-rev">` +
       `<div class="s-stack"><figure style="background-image:url(${IMG}${BR ? 'atelier-yawanawa' : 'nepal-artisans'}.jpg)"></figure><figure style="background-image:url(${IMG}yawanawa-community.jpg)"></figure></div>` +
@@ -579,7 +580,7 @@
 
     if (on('partnership') && (p.deck.intro || '').trim()) add('partnership', `<div class="slide s-split">` +
       `<div class="s-txt">${hl(p.edition.name.toUpperCase() + ' ×', '#TOGETHERBAND', '')}${(p.deck.intro || '').split(/\n{2,}/).map(x => `<p>${esc(x)}</p>`).join('')}` +
-      `<p class="s-sdg"><span style="background:${g.color}">${g.n}</span>Supporting SDG ${g.n}: ${esc(g.name)}</p></div>` +
+      (hasGoal(p) ? `<p class="s-sdg"><span style="background:${g.color}">${g.n}</span>Supporting SDG ${g.n}: ${esc(g.name)}</p>` : '') + `</div>` +
       `<div class="s-feature" style="background:${tint(A, 0.9)}">${bandSVG(hero)}</div>${foot()}</div>`, 'About this partnership');
 
     if (on('yourband')) add('yourband', `<div class="slide s-section" style="background:${A};color:${ink}"><h2>YOUR BAND,<br>YOUR MESSAGE</h2></div>`, 'Your band, your message');
@@ -593,7 +594,7 @@
       add('product', `<div class="slide s-product"><div class="s-prod-h" style="color:${A}"><b>${st} ${fin}${ED}</b> <span>#TOGETHERBAND</span><br>` +
         `<b>${v.style === 'heart' ? 'RECYCLED ILLEGAL FIREARM METAL HEART &amp; OCEAN PLASTIC' : esc(finishTitle(v).toUpperCase()) + ' RECYCLED ILLEGAL FIREARM METAL &amp; OCEAN PLASTIC'}</b></div>${tag}` +
         `<div class="s-prod-row"><div class="s-prod-c">${packFace(p, 'front', { opt })}<span>FRONT</span></div><div class="s-prod-c">${packFace(p, 'back', { opt })}<span>BACK</span></div>` +
-        `<div class="s-prod-band">${bandSVG(v)}</div></div><div class="s-prod-sdg">GOAL ${g.n} · ${esc(g.name.toUpperCase())}</div>${foot()}</div>`,
+        `<div class="s-prod-band">${bandSVG(v)}</div></div>${hasGoal(p) ? `<div class="s-prod-sdg">GOAL ${g.n} · ${esc(g.name.toUpperCase())}</div>` : ''}${foot()}</div>`,
         `${STYLES[v.style].label} ${shortFinish(v)}${opt ? ' · ' + (opt.label || '') : ''}`);
     }));
 
@@ -635,7 +636,7 @@
 
   TB.render = {
     esc, mix, shade, tint, onColor, luma, sdg, money, num, sleeveColor,
-    tbLogo, partnerLogo, qrSVG, look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
+    tbLogo, partnerLogo, qrSVG, hasGoal, look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
     insertFront, insertBack, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
   };
 })(window);
