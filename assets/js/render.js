@@ -52,11 +52,11 @@
     const a = o && o.backArt ? (p.artworks || []).find(x => x.id === o.backArt) : null;
     return a ? { src: a.src, printSrc: a.printSrc || a.src, cx: (o.backFocus || {}).cx || 0.5, w: (o.backFocus || {}).w || 1 } : null;
   }
+  // Fill the whole back panel at full band height (the same scale as the front), centred on the motif,
+  // so the artwork has no visible edge: its sides fall on the fold and under the overlapping end.
   function backArtImg(L, hires) {
     const B = L.backArt;
-    // scale so the motif spans ~84% of the panel width, centred on the motif
-    const scale = (0.84 / B.w * 100).toFixed(2);
-    return `<div class="bk-art">` + tintImg(hires ? B.printSrc : B.src, L.ink || '#ffffff', 'bk-img', `width:${scale}cqw;transform:translate(-${(B.cx * 100).toFixed(2)}%,-50%)`, hires ? 4096 : 1600) + `</div>`;
+    return `<div class="bk-art" style="background:${L.sleeve}">` + tintImg(hires ? B.printSrc : B.src, L.ink || '#ffffff', 'bk-img', `height:100cqh;transform:translate(-${(B.cx * 100).toFixed(2)}%,-50%)`, hires ? 4096 : 1600) + `</div>`;
   }
   function look(p, opt) {
     const o = opt === undefined ? activeOption(p) : opt;
