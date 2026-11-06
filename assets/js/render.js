@@ -67,7 +67,7 @@
       const art = o.art && o.art !== 'logo' ? (p.artworks || []).find(a => a.id === o.art) : null;
       return { sleeve: o.sleeve, ink: o.ink, art: art ? art.src : null, fit: o.fit || 'cover', label: o.label,
         aspect: art && art.aspect || 16 / 9, overlay: art && o.overlay && o.overlay.src ? o.overlay : null,
-        backArt: backArtOf(p, o) };
+        backArt: backArtOf(p, o), backLogo: o.backLogo && o.backLogo.src ? o.backLogo : null };
     }
     const sc = baseSleeve(p);
     return { sleeve: sc, ink: null, art: null };
@@ -486,7 +486,7 @@
       sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
         `<div class="pkb-flap pkb-flap-l" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('l')}<div class="pkb-half">${left}</div></div>` +
         `<div class="pkb-flap pkb-flap-r">${lines('r')}` +
-        `<div class="pkb-half">${L.backArt ? backArtImg(L) : `<div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div>`}</div></div></div>`;
+        `<div class="pkb-half">${L.backArt ? backArtImg(L) : L.backLogo ? `<div class="pkb-label bk-logo">${tintImg(L.backLogo.src, ink, 'bk-logoimg', `width:${((L.backLogo.w || 0.4) * (1 - dieline(p).seam) * 100).toFixed(2)}cqw`)}</div>` : `<div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div>`}</div></div></div>`;
     }
     return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}" style="${dlVars(p)}">${side === 'front' ? emb : ''}${sleeve}</div>`;
   }
@@ -565,7 +565,7 @@
     const backText = `${svgHeading(head)}<div class="pa-copy">${esc(p.packaging.backCopy || insertCopy(p))}</div>`;
     return `<div class="pa pa-outside" style="background:${sc};color:${ink}">` +
       panel('tape', '') +
-      panel('under', strip('l') + (L.backArt ? `<div class="pa-backart" style="top:${px(30)};bottom:${px(31.5)}">${backArtImg(L, hires)}</div>`
+      panel('under', strip('l') + (L.backLogo && !L.backArt ? `<div class="pa-center">${label(tintImg(L.backLogo.src, ink, 'bk-logoimg', `width:${px((L.backLogo.w || 0.4) * 433.5)}`, hires ? 3000 : 1600), 'pa-logo')}</div>` : L.backArt ? `<div class="pa-backart" style="top:${px(30)};bottom:${px(31.5)}">${backArtImg(L, hires)}</div>`
         : `<div class="pa-center" style="padding-top:${px(4)}">${label(`${qrSVG(p.edition.url, ink)}<div class="pa-url">${esc(p.edition.url)}</div>`, 'pa-qr')}</div>`)) +
       panel('sideL', strip('r') + `<div class="pa-center"><div class="pa-side"${art ? ` style="background:${sc}"` : ''}>${esc(sideLabel(p))}</div></div>`) +
       panel('front', frontInner) +
