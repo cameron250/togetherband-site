@@ -382,6 +382,28 @@
     const tone = p.brand.logoTone === 'original' ? 'original' : (ink === '#ffffff' ? p.brand.logoTone : 'black');
     return partnerLogo(p, Object.assign({}, o, { tone }));
   }
+  /* Heading drawn as SVG text with fixed line positions. Phone browsers (iOS Safari in
+     particular) resize HTML text on their own, which collapsed multi-line headings; SVG
+     text keeps its layout. lines: [[[text, weight], ...], ...]; units: 1 = 1% of a 100-wide box. */
+  function svgHeading(lines, o) {
+    o = o || {};
+    const fs = o.size || 7.8, lh = fs * (o.lead || 1.16), w = 100;
+    // Oswald capitals average about 0.5em wide: split single-segment lines that would not fit.
+    const max = Math.floor(96 / (fs * 0.5));
+    lines = [].concat(...lines.map(segs => {
+      if (segs.length !== 1 || segs[0][0].length <= max) return [segs];
+      const words = segs[0][0].split(' '), out = [];
+      let cur = '';
+      words.forEach(wd => { if ((cur + ' ' + wd).trim().length > max && cur) { out.push(cur); cur = wd; } else cur = (cur + ' ' + wd).trim(); });
+      if (cur) out.push(cur);
+      return out.map(t => [[t, segs[0][1]]]);
+    }));
+    const h = lh * (lines.length - 1) + fs * 1.05;
+    const rows = lines.map((segs, i) => `<text x="${w / 2}" y="${(fs * 0.86 + i * lh).toFixed(2)}" text-anchor="middle">` +
+      segs.map(([t, wt]) => `<tspan font-weight="${wt || 700}">${esc(t)}</tspan>`).join(' ') + '</text>').join('');
+    return `<svg class="pkb-svgh" viewBox="0 0 ${w} ${h.toFixed(2)}" role="img" aria-label="${esc(lines.map(l => l.map(x => x[0]).join(' ')).join(' '))}">` +
+      `<g fill="currentColor" font-family="Oswald, 'Arial Narrow', sans-serif" font-size="${fs}" letter-spacing="${(fs * 0.03).toFixed(2)}">${rows}</g></svg>`;
+  }
   function packFace(p, side, o) {
     o = o || {};
     const L = look(p, o.opt);
@@ -399,9 +421,13 @@
       // end sits on top. Text is centred in the left half, the QR code in the right half.
       const carry = L.art && p.packaging.backPattern !== false && L.fit !== 'contain';
       const lines = side => carry ? tintImg(L.art, L.ink || '#ffffff', `pk-artimg pk-artstrip pk-artstrip-${side}`) : '';
-      const left = p.packaging.backHeading
-        ? `<div class="pkb-label pkb-fit"><div class="pkb-h"><b>${esc(p.packaging.backHeading).replace(/\n/g, '<br>')}</b></div><div class="pkb-copy">${esc(p.packaging.backCopy || '')}</div></div>`
-        : `<div class="pkb-label pkb-fit"><div class="pkb-h"><b>#TOGETHERBAND</b><br>${hasGoal(p) ? `<b>EDITION</b> <span>SUPPORTING</span><br><b>SDG ${g.n}:</b><br><b>${esc(g.name.toUpperCase())}</b>` : `<span>SPECIAL</span> <b>EDITION</b>`}</div><div class="pkb-made">${made}</div></div>`;
+      const headLines = p.packaging.backHeading
+        ? p.packaging.backHeading.split('\n').map(l => l.trim()).filter(Boolean).map(l => [[l.toUpperCase(), 700]])
+        : [[['#TOGETHERBAND', 700]]].concat(hasGoal(p)
+          ? [[['EDITION', 700], ['SUPPORTING', 300]], [[`SDG ${g.n}:`, 700]], [[g.name.toUpperCase(), 700]]]
+          : [[['SPECIAL', 300], ['EDITION', 700]]]);
+      const left = `<div class="pkb-label pkb-fit">${svgHeading(headLines)}` +
+        (p.packaging.backHeading ? `<div class="pkb-copy">${esc(p.packaging.backCopy || '')}</div>` : `<div class="pkb-made">${made}</div>`) + `</div>`;
       sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
         `<div class="pkb-flap pkb-flap-l">${lines('l')}<div class="pkb-half">${left}</div></div>` +
         `<div class="pkb-flap pkb-flap-r" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('r')}` +

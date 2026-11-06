@@ -313,6 +313,8 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .pkb-made, .pkb-url { font-family: 'Work Sans', Arial, sans-serif; font-size: calc(2.4cqw * var(--k, 1)); line-height: 1.35; }
 .pkb-copy { font-family: 'Work Sans', Arial, sans-serif; font-size: calc(1.9cqw * var(--k, 1)); line-height: 1.4; max-width: 38cqw; }
 .pkb-label .pkb-h { font-size: calc(3.1cqw * var(--k, 1)); line-height: 1.15; display: block; }
+/* heading as SVG: width tracks the half of the bellyband; text scale follows --k */
+.pkb-svgh { display: block; width: calc(40cqw * (0.45 + var(--k, 1) * 0.55)); height: auto; overflow: visible; flex: none; }
 .pkb-qrl { gap: 4cqh; }
 .pkb-qrl .qr { width: 19cqw; height: auto; }
 /* artwork lines carried round the back: a lines-only edge strip of the artwork stretched across each end */
