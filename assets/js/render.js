@@ -418,6 +418,13 @@
     return `<svg class="pkb-svgh" viewBox="0 0 ${w} ${h.toFixed(2)}" role="img" aria-label="${esc(lines.map(l => l.map(x => x[0]).join(' ')).join(' '))}">` +
       `<g fill="currentColor" font-family="Oswald, 'Arial Narrow', sans-serif" font-size="${fs}" letter-spacing="${(fs * 0.03).toFixed(2)}">${rows}</g></svg>`;
   }
+  // Bellyband proportions from the dieline, as fractions of the box front width.
+  function dieline(p) {
+    const d = Object.assign({ tape: 138, backUnder: 433.5, side: 224, front: 945, backTop: 513, height: 410.5 }, p.packaging.dieline || {});
+    const f = d.front || 945;
+    return { d, h: d.height / f, depth: d.side / f, seam: d.backTop / f, tape: d.tape / f };
+  }
+  const dlVars = p => { const g = dieline(p); return `--bb-h:${(g.h * 100).toFixed(2)}%;--seam:${(g.seam * 100).toFixed(2)}%;--seamN:${g.seam.toFixed(4)};--tapeN:${g.tape.toFixed(4)};--depth:${g.depth.toFixed(4)}`; };
   function packFace(p, side, o) {
     o = o || {};
     const L = look(p, o.opt);
@@ -431,8 +438,9 @@
     } else {
       const g = sdg(p.edition.sdg);
       const made = esc(p.edition.madeIn || '').replace(/\.\s+/g, '.<br>');
-      // The bellyband's two ends overlap and meet in the middle of the back: the right-hand
-      // end sits on top. Text is centred in the left half, the QR code in the right half.
+      // Back of the bellyband, seen from behind: the left-hand end (dieline 'back, on top') lies over
+      // the right-hand end, whose glue tape is tucked underneath. Text sits on the top end, the QR code
+      // on the other; each is centred in its visible part.
       const carry = L.art && p.packaging.backPattern !== false && L.fit !== 'contain';
       const lines = side => carry ? tintImg(L.art, L.ink || '#ffffff', `pk-artimg pk-artstrip pk-artstrip-${side}`) : '';
       const headLines = p.packaging.backHeading
@@ -443,16 +451,38 @@
       const left = `<div class="pkb-label pkb-fit">${svgHeading(headLines)}` +
         (p.packaging.backHeading ? `<div class="pkb-copy">${esc(p.packaging.backCopy || '')}</div>` : `<div class="pkb-made">${made}</div>`) + `</div>`;
       sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
-        `<div class="pkb-flap pkb-flap-l">${lines('l')}<div class="pkb-half">${left}</div></div>` +
-        `<div class="pkb-flap pkb-flap-r" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('r')}` +
+        `<div class="pkb-flap pkb-flap-l" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('l')}<div class="pkb-half">${left}</div></div>` +
+        `<div class="pkb-flap pkb-flap-r">${lines('r')}` +
         `<div class="pkb-half"><div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div></div></div></div>`;
     }
-    return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}">${side === 'front' ? emb : ''}${sleeve}</div>`;
+    return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}" style="${dlVars(p)}">${side === 'front' ? emb : ''}${sleeve}</div>`;
   }
-  function packSide(p, wrapped) {
+  function packSide(p, wrapped, which) {
     const box = p.packaging.box === 'black' ? 'pk-black' : 'pk-white';
     const L = look(p);
-    return `<div class="pk pk-side ${box}">${wrapped ? `<div class="pk-sleeve pk-art" style="background:${L.sleeve}">${sleeveArt(L)}</div>` : ''}</div>`;
+    return `<div class="pk pk-side ${box}" style="${dlVars(p)}">${wrapped ? `<div class="pk-sleeve pk-art" style="background:${L.sleeve}">${L.art && L.fit !== 'contain' ? tintImg(L.art, L.ink || '#ffffff', `pk-artimg pk-artstrip pk-artstrip-${which === 'right' ? 'l' : 'r'}`) : sleeveArt(L)}</div>` : ''}</div>`;
+  }
+  /* The bellyband laid flat (outside face) on the production dieline:
+     glue tape | back, under | side | front | side | back, on top. */
+  function bellybandFlat(p, opt) {
+    const L = look(p, opt);
+    const { d } = dieline(p);
+    const total = d.tape + d.backUnder + d.side + d.front + d.side + d.backTop;
+    const pc = v => (v / total * 100).toFixed(3) + '%';
+    const front = packFace(p, 'front', { opt, flat: true }).match(/<div class="pk-sleeve[\s\S]*<\/div><\/div>$/);
+    const back = packFace(p, 'back', { opt, flat: true }).match(/<div class="pk-sleeve[\s\S]*<\/div><\/div>$/);
+    const strip = side => L.art && L.fit !== 'contain' ? tintImg(L.art, L.ink || '#ffffff', `pk-artimg pk-artstrip pk-artstrip-${side}`) : '';
+    const slv = (html, w, align) => `<div class="bbf-sleeve" style="width:${w};${align}:0">${html.slice(0, -6)}</div>`;
+    const panel = (w, label, inner, cls) => `<div class="bbf-p${cls ? ' ' + cls : ''}" style="width:${pc(w)}"><div class="bbf-art">${inner}</div><span class="bbf-l">${label}</span></div>`;
+    const tape = `<div class="bbf-tape"><span>TAPE</span></div>`;
+    return `<div class="bbf" style="aspect-ratio:${total} / ${d.height};${dlVars(p)}">` +
+      panel(d.tape, 'Glue tape', tape, 'bbf-tapep') +
+      panel(d.backUnder, 'Back (under)', back ? slv(back[0], (d.front / d.backUnder * 100).toFixed(2) + '%', 'right') : '') +
+      panel(d.side, 'Side', `<div class="bbf-fill" style="background:${L.sleeve}">${strip('r')}</div>`) +
+      panel(d.front, 'Front', front ? slv(front[0], '100%', 'left') : '') +
+      panel(d.side, 'Side', `<div class="bbf-fill" style="background:${L.sleeve}">${strip('l')}</div>`) +
+      panel(d.backTop, 'Back (on top)', back ? slv(back[0], (d.front / d.backTop * 100).toFixed(2) + '%', 'left') : '') +
+      `</div>`;
   }
   // One packaging option as a labelled flat front, for the options grid and slide.
   function optionCard(p, opt, i, active) {
@@ -460,11 +490,11 @@
   }
   function box3D(p, view) {
     view = view || { rx: 56, rz: -32 };
-    return `<div class="b3-scene"><div class="b3-shadow"></div><div class="b3" style="--rx:${view.rx}deg;--rz:${view.rz}deg">` +
+    return `<div class="b3-scene"><div class="b3-shadow"></div><div class="b3" style="--rx:${view.rx}deg;--rz:${view.rz}deg;--depth:${dieline(p).depth.toFixed(4)}">` +
       `<div class="b3f b3-top">${packFace(p, 'front', { flat: true })}</div>` +
       `<div class="b3f b3-bottom">${packFace(p, 'back', { flat: true })}</div>` +
-      `<div class="b3f b3-left">${packSide(p, true)}</div>` +
-      `<div class="b3f b3-right">${packSide(p, true)}</div>` +
+      `<div class="b3f b3-left">${packSide(p, true, 'left')}</div>` +
+      `<div class="b3f b3-right">${packSide(p, true, 'right')}</div>` +
       `<div class="b3f b3-front">${packSide(p, false)}</div>` +
       `<div class="b3f b3-back">${packSide(p, false)}</div>` +
       `</div></div>`;
@@ -706,7 +736,7 @@
 
   TB.render = {
     esc, mix, shade, tint, onColor, luma, sdg, money, num, sleeveColor,
-    tbLogo, partnerLogo, qrSVG, hasGoal, variantFinish: v => finishTitle(v), look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
+    tbLogo, partnerLogo, qrSVG, hasGoal, bellybandFlat, dieline, variantFinish: v => finishTitle(v), look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
     insertFront, insertBack, isCard, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
   };
 })(window);

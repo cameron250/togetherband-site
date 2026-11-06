@@ -364,6 +364,7 @@
     $('#pkOptsWrap').hidden = os.length < 2;
     $('#pkOpts').innerHTML = os.map((o, i) => `<button type="button" class="pko-btn" data-opt="${i}" aria-pressed="${i === (Number(p.packaging.active) || 0)}">${R.optionCard(p, o, i, i === (Number(p.packaging.active) || 0))}</button>`).join('');
     $('#pkFront').innerHTML = R.packFace(p, 'front');
+    $('#pkFlat').innerHTML = R.bellybandFlat(p);
     $('#pkBack').innerHTML = R.packFace(p, 'back');
     let ex = '';
     if (p.packaging.insert) {
