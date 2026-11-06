@@ -50,7 +50,8 @@
     const o = opt === undefined ? activeOption(p) : opt;
     if (o) {
       const art = o.art && o.art !== 'logo' ? (p.artworks || []).find(a => a.id === o.art) : null;
-      return { sleeve: o.sleeve, ink: o.ink, art: art ? art.src : null, fit: o.fit || 'cover', label: o.label };
+      return { sleeve: o.sleeve, ink: o.ink, art: art ? art.src : null, fit: o.fit || 'cover', label: o.label,
+        aspect: art && art.aspect || 16 / 9, overlay: art && o.overlay && o.overlay.src ? o.overlay : null };
     }
     const sc = baseSleeve(p);
     return { sleeve: sc, ink: null, art: null };
@@ -379,8 +380,24 @@
   }
 
   // ---------- packaging ----------
+  /* A logo placed at a point in the artwork (e.g. inside the zero of "20"), with an optional clear
+     elliptical window behind it. Needs a size container whose width is filled by the artwork (object-fit: cover
+     on a frame wider than the artwork), which is true of the bellyband front everywhere it is drawn.
+     ov: { src, cx, cy, w, rx, ry } — cx, w, rx as fractions of artwork width; cy, ry of artwork height. */
+  function artOverlay(L, maxPx) {
+    const ov = L.overlay;
+    if (!ov || !L.art || L.fit === 'contain') return '';
+    const A = L.aspect || 16 / 9;
+    const H = `(100cqw / ${A.toFixed(4)})`;
+    const top = `((100cqh - ${H}) / 2)`;
+    const win = ov.rx ? `<div class="ov-win" style="left:calc(${((ov.cx - ov.rx) * 100).toFixed(3)}cqw);top:calc(${top} + ${H} * ${(ov.cy - ov.ry).toFixed(4)});` +
+      `width:${(ov.rx * 200).toFixed(3)}cqw;height:calc(${H} * ${(ov.ry * 2).toFixed(4)});background:${L.sleeve};box-shadow:0 0 ${(ov.feather || 1.2)}cqw ${(ov.feather || 1.2) * 0.6}cqw ${L.sleeve}"></div>` : '';
+    const logo = `<div class="ov-logo" style="left:${(ov.cx * 100).toFixed(3)}cqw;top:calc(${top} + ${H} * ${ov.cy.toFixed(4)});width:${(ov.w * 100).toFixed(3)}cqw">` +
+      tintImg(ov.src, ov.ink || L.ink || '#ffffff', 'ov-img', '', maxPx || 1600) + `</div>`;
+    return win + logo;
+  }
   function sleeveArt(L, cls) {
-    return L.art ? tintImg(L.art, L.ink || '#ffffff', 'pk-artimg' + (cls ? ' ' + cls : ''), `object-fit:${L.fit}`) : '';
+    return L.art ? tintImg(L.art, L.ink || '#ffffff', 'pk-artimg' + (cls ? ' ' + cls : ''), `object-fit:${L.fit}`) + (cls ? '' : artOverlay(L)) : '';
   }
   // Logo on a sleeve: either the partner logo knocked out to the option's ink, or the default treatment.
   function sleeveLogo(p, L, o) {
@@ -523,7 +540,7 @@
     const P = PA.panels;
     const strip = side => art && L.fit !== 'contain' ? tintImg(art, L.ink || '#ffffff', `pk-artimg pk-artstrip pk-artstrip-${side}`, '', MAX) : '';
     const panel = (k, inner) => `<div class="pa-p" style="left:${px(P[k][0])};width:${px(P[k][1] - P[k][0])}">${inner}</div>`;
-    const frontInner = art ? tintImg(art, L.ink || '#ffffff', 'pk-artimg', `object-fit:${L.fit}`, MAX)
+    const frontInner = art ? `<div class="pa-frontwrap">${tintImg(art, L.ink || '#ffffff', 'pk-artimg', `object-fit:${L.fit}`, MAX)}${artOverlay(L, 4096)}</div>`
       : `<div class="pa-frontlogo">${sleeveLogo(p, L, { maxH: 60, scale: 70 })}</div>`;
     const label = (inner, cls) => `<div class="pa-lbl${art ? ' pa-lbl-solid' : ''}${cls ? ' ' + cls : ''}" style="background:${art ? sc : 'transparent'}">${inner}</div>`;
     const head = p.packaging.backHeading
