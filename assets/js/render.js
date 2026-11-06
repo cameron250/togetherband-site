@@ -380,7 +380,9 @@
     } else {
       const g = sdg(p.edition.sdg);
       const made = esc(p.edition.madeIn || '').replace(/\.\s+/g, '.<br>');
-      sleeve = `<div class="pk-sleeve pk-back" style="background:${sc};color:${ink}">` +
+      const carry = L.art && p.packaging.backPattern !== false && L.fit !== 'contain';
+      sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry pk-art' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
+        (carry ? tintImg(L.art, L.ink || '#ffffff', 'pk-artimg pk-artstrip') : '') +
         (p.packaging.backHeading
           ? `<div class="pkb-l pkb-custom"><div class="pkb-h"><b>${esc(p.packaging.backHeading).replace(/\n/g, '<br>')}</b></div><div class="pkb-copy">${esc(p.packaging.backCopy || '')}</div></div>`
           : `<div class="pkb-l"><div class="pkb-h"><b>#TOGETHERBAND</b><br><b>EDITION</b> <span>SUPPORTING</span><br><b>SDG ${g.n}:</b><br><b>${esc(g.name.toUpperCase())}</b></div>` +
@@ -584,7 +586,7 @@
       (p.packaging.insert ? `<div class="s-ub-ins">${insertFront(p)}</div>` : '') +
       (p.packaging.qrCard ? `<div class="s-ub-qr">${qrCard(p)}</div>` : '') +
       `<div class="s-ub-t s-ub-t1"><b>#TOGETHERBAND range</b><br>Award-winning waste materials: Parley Ocean Plastic® thread and Humanium confiscated illegal firearm metal.</div>` +
-      `<div class="s-ub-t s-ub-t2"><b>${ED} branded sleeve</b><br>Your logo on a recyclable sleeve in your brand colour, wrapped around our embossed gift box.</div>` +
+      `<div class="s-ub-t s-ub-t2"><b>${ED} branded bellyband</b><br>Your artwork on a recyclable bellyband in your brand colours, wrapped around our embossed gift box.</div>` +
       (p.packaging.insert ? `<div class="s-ub-t s-ub-t3"><b>#TOGETHERBAND × ${ED}</b><br>A concertina insert unpacks the product, the campaign and your key messages.*</div>` : '') +
       (p.packaging.qrCard ? `<div class="s-ub-t s-ub-t4"><b>A direct link to your campaign.</b><br>An optional QR card* points people to ${esc(p.edition.url)}.</div>` : '') +
       `<div class="s-note">* Optional packaging elements are available at additional cost.</div>${foot()}</div>`, 'Packaging contents');

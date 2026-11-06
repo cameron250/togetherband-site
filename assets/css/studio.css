@@ -308,6 +308,14 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .pkb-custom { justify-content: center; gap: 3cqh; text-align: left; align-items: flex-start; padding: 0 3cqw 0 4.5cqw; }
 .pkb-custom .pkb-h { font-size: 3.1cqw; line-height: 1.1; }
 .pkb-copy { font-family: 'Work Sans', Arial, sans-serif; font-size: 1.75cqw; line-height: 1.35; }
+/* lines carried round the back: the artwork's right-hand strip (lines only) stretched across the back */
+.pk-artstrip { width: 500%; height: 125%; top: -12.5%; left: auto; right: 0; max-width: none; object-fit: fill; }
+.pk-carry { gap: 0; grid-template-columns: 1.45fr .75fr; }
+.pk-carry .pkb-l, .pk-carry .pkb-r { position: relative; background: var(--sl); height: 66cqh; align-self: center; padding-block: 0; border-left: 0; }
+.pk-carry .pkb-l { margin: 0 2cqw 0 4cqw; padding: 0 3cqw; }
+.pk-carry .pkb-r { margin: 0 4cqw 0 2cqw; padding: 0 1.5cqw; gap: 3cqh; }
+.pk-carry .pkb-r .qr { width: 15cqw; }
+.pk-carry .pkb-url { font-size: 1.9cqw; }
 .pkb-r .qr { width: 21cqw; height: auto; }
 .pk-side { aspect-ratio: auto; height: 100%; box-shadow: none; }
 

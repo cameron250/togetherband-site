@@ -271,12 +271,12 @@
         </div>
         <div class="f-row f-row3">
           <div class="f"><label for="o-art-${i}">Artwork</label><select id="o-art-${i}" data-of="art">${artOpts(o.art)}</select></div>
-          <div class="f"><label for="o-sl-${i}">Sleeve</label><div class="color-in"><input id="o-sl-${i}" type="color" data-of="sleeve" value="${o.sleeve}"></div></div>
+          <div class="f"><label for="o-sl-${i}">Bellyband</label><div class="color-in"><input id="o-sl-${i}" type="color" data-of="sleeve" value="${o.sleeve}"></div></div>
           <div class="f"><label for="o-ink-${i}">Artwork colour</label><div class="color-in"><input id="o-ink-${i}" type="color" data-of="ink" value="${o.ink}"></div></div>
         </div>
         <div class="var-act">
           <button type="button" class="linkbtn" data-oact="dup">Duplicate</button>
-          <button type="button" class="linkbtn" data-oact="fit">${o.fit === 'contain' ? 'Fill sleeve with artwork' : 'Fit whole artwork'}</button>
+          <button type="button" class="linkbtn" data-oact="fit">${o.fit === 'contain' ? 'Fill bellyband with artwork' : 'Fit whole artwork'}</button>
           <button type="button" class="linkbtn" data-oact="del">Remove</button>
         </div>
       </div>`).join('');
@@ -357,7 +357,7 @@
     const g = R.sdg(p.edition.sdg);
     $('#pkTitle').textContent = `${p.partner} × #TOGETHERBAND packaging`;
     const ao = R.activeOption(p);
-    $('#pkSub').textContent = `${p.packaging.box === 'black' ? 'Black' : 'White'} embossed gift box with a ${p.partner} sleeve${ao ? ' · Showing: ' + (ao.label || 'option') : ''} · Supporting Goal ${g.n}: ${g.name}`;
+    $('#pkSub').textContent = `${p.packaging.box === 'black' ? 'Black' : 'White'} embossed gift box with a ${p.partner} bellyband${ao ? ' · Showing: ' + (ao.label || 'option') : ''} · Supporting Goal ${g.n}: ${g.name}`;
     $('#b3wrap').innerHTML = R.box3D(p, view3d);
     const os = p.packaging.options || [];
     $('#pkOptsWrap').hidden = os.length < 2;

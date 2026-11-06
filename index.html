@@ -86,7 +86,7 @@
       </div>
       <div class="f-row">
         <div class="f">
-          <label for="f-tone">Logo on coloured sleeve</label>
+          <label for="f-tone">Logo on coloured bellyband</label>
           <select id="f-tone" data-bind="brand.logoTone">
             <option value="white">Knock out to white</option>
             <option value="black">Knock out to black</option>
@@ -143,7 +143,7 @@
           </select>
         </div>
         <div class="f">
-          <label for="f-sleeve">Sleeve colour <span class="hint" id="sleeveNote" hidden>(set per option below)</span></label>
+          <label for="f-sleeve">Bellyband colour <span class="hint" id="sleeveNote" hidden>(set per option below)</span></label>
           <select id="f-sleeve" data-bind="packaging.sleeve">
             <option value="brand">Brand colour</option>
             <option value="sdg">Goal colour</option>
@@ -151,13 +151,14 @@
           </select>
         </div>
         <div class="f" id="sleeveCustom">
-          <label for="f-sleevec">Custom sleeve</label>
+          <label for="f-sleevec">Custom bellyband</label>
           <div class="color-in"><input id="f-sleevec" data-bind="packaging.sleeveColor" type="color"><input data-bind="packaging.sleeveColor" data-hex type="text" spellcheck="false" aria-label="Custom sleeve hex"></div>
         </div>
       </div>
       <div class="checks">
         <label><input type="checkbox" data-bind="packaging.insert"> Concertina booklet insert</label>
         <label><input type="checkbox" data-bind="packaging.qrCard"> QR code card</label>
+        <label><input type="checkbox" data-bind="packaging.backPattern"> Carry artwork lines round the back of the bellyband</label>
       </div>
       <div class="f">
         <label for="f-backh">Back of box heading (optional)</label>
@@ -175,8 +176,8 @@
 
     <details class="sec" open>
       <summary>Packaging options</summary>
-      <p class="hint">Show the client several sleeve designs side by side. Each option pairs an artwork (or the partner logo) with a sleeve colour and a colour for the artwork. Line or single-colour artwork on a transparent background works best.</p>
-      <span class="lbl">Sleeve artwork</span>
+      <p class="hint">Show the client several bellyband designs side by side. The bellyband is the wrap around the box. Each option pairs an artwork (or the partner logo) with a bellyband colour and a colour for the artwork. Line or single-colour artwork on a transparent background works best.</p>
+      <span class="lbl">Bellyband artwork</span>
       <div class="arts" id="arts"></div>
       <div><label class="btn btn-small" for="f-art">Upload artwork</label><input id="f-art" type="file" accept="image/png,image/svg+xml,image/webp" class="sr" multiple></div>
       <div class="opts" id="opts"></div>

@@ -106,6 +106,7 @@
         insertCopy: '',
         backHeading: '',
         backCopy: '',
+        backPattern: true,
         options: [],
         active: 0
       },
