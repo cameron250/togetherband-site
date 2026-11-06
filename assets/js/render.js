@@ -162,7 +162,7 @@
   function photoSpec(v) {
     const style = v.style === 'braided' ? 'classic' : v.style;
     if (style === 'heart') {
-      if (v.finish === 'painted') return { key: 'heart', clasp: v.paint || v.rope || '#C41A2E' };
+      if (v.finish === 'painted') return { key: 'heart', clasp: v.paint || v.rope || '#C41A2E', matte: true };
       return { key: 'heart', clasp: v.finish === 'metallic' ? (v.metal || '#2457C5') : v.finish === 'rainbow' ? 'rainbow' : (CLASP_TINT[v.finish] || CLASP_TINT.polished) };
     }
     const gold = v.finish === 'gold';
@@ -172,7 +172,7 @@
     else if (v.finish === 'painted') clasp = v.paint || v.rope || '#C41A2E';
     else if (v.finish === 'rainbow') clasp = 'rainbow';
     else if (v.finish === 'rose' || v.finish === 'onyx') clasp = CLASP_TINT[v.finish];
-    return { key, clasp };
+    return { key, clasp, matte: v.finish === 'painted' };
   }
   const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
   const SIZES = { 'classic-polished': [687, 683], 'classic-gold': [687, 683], 'mini-gold': [738, 711], 'mini-polished': [738, 711], heart: [557, 694] };
@@ -222,9 +222,23 @@
       o[i + c] = p[i + c] + (v - p[i + c]) * k;
     }
   }
+  /* Painted metal is matte: flatten the polished highlights, keep enough shading to read
+     the form, and add a fine grain like a powder-coated finish. */
+  function dyeMatte(p, o, i, T, mean, amt) {
+    const Y = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
+    let f = Y / Math.max(mean, 1);
+    f = f > 1 ? 1 + Math.min(f - 1, 0.6) * 0.18 : 1 - (1 - f) * 0.62;
+    const grain = (((i * 2654435761) >>> 0) % 1000) / 1000 * 10 - 5;
+    const k = amt / 255;
+    for (let c = 0; c < 3; c++) {
+      const t = T[c];
+      const v = (f <= 1 ? t * f : t + (255 - t) * (f - 1) * 0.5) + grain;
+      o[i + c] = p[i + c] + (v - p[i + c]) * k;
+    }
+  }
   function recolourPhoto(v) {
     const s = photoSpec(v);
-    const id = `${s.key}|${String(v.rope).toLowerCase()}|${s.clasp}`;
+    const id = `${s.key}|${String(v.rope).toLowerCase()}|${s.clasp}${s.matte ? '|matte' : ''}`;
     if (photoCache[id]) return photoCache[id];
     photoCache[id] = base(s.key).then(B => {
       const c = document.createElement('canvas');
@@ -241,7 +255,7 @@
         else if (m[i + 1] && s.clasp) {
           let C = K;
           if (!C) { const px = (i / 4) % B.w; C = hsl(((px - B.kx0) / Math.max(1, B.kx1 - B.kx0)) * 300, 0.78, 0.55); }
-          dye(p, o, i, C, B.claspMean, m[i + 1]);
+          (s.matte ? dyeMatte : dye)(p, o, i, C, B.claspMean, m[i + 1]);
         }
       }
       x.putImageData(out, 0, 0);
@@ -302,7 +316,7 @@
   }
   function bandSVG(v, opts) {
     const s = photoSpec(v);
-    const id = `${s.key}|${String(v.rope).toLowerCase()}|${s.clasp}`;
+    const id = `${s.key}|${String(v.rope).toLowerCase()}|${s.clasp}${s.matte ? '|matte' : ''}`;
     const done = photoCache[id] && photoCache[id].url;
     const [w, h] = SIZES[s.key];
     const data = esc(JSON.stringify({ style: v.style, rope: v.rope, finish: v.finish, metal: v.metal, paint: v.paint }));
@@ -575,6 +589,18 @@
     const logoTone = ink === '#ffffff' ? 'white' : 'black';
     const hl = (a, b, c) => `<h2 class="s-h">${a ? esc(a) + ' ' : ''}<em style="color:${A}">${esc(b)}</em>${c ? '<br>' + esc(c) : ''}</h2>`;
 
+    const introSlide = () => {
+      if (!on('partnership') || !(p.deck.intro || '').trim()) return;
+      const os = p.packaging.options || [];
+      const heroOpt = os.find(o => o.id === p.deck.heroOption) || activeOption(p);
+      const feature = heroOpt
+        ? `<div class="s-hero"><div class="s-hero-box">${packFace(p, 'front', { opt: heroOpt })}</div><div class="s-hero-band">${bandSVG(hero)}</div></div>`
+        : `<div class="s-feature" style="background:${tint(A, 0.9)}">${bandSVG(hero)}</div>`;
+      add('partnership', `<div class="slide s-split">` +
+        `<div class="s-txt">${hl(p.edition.name.toUpperCase() + ' ×', '#TOGETHERBAND', '')}${(p.deck.intro || '').split(/\n{2,}/).map(x => `<p>${esc(x)}</p>`).join('')}` +
+        (hasGoal(p) ? `<p class="s-sdg"><span style="background:${g.color}">${g.n}</span>Supporting SDG ${g.n}: ${esc(g.name)}</p>` : '') + `</div>` +
+        `${feature}${foot()}</div>`, 'About this partnership');
+    };
     const coverArt = p.deck.coverArt && (p.artworks || []).find(a => a.id === p.deck.coverArt);
     if (on('cover') && coverArt) add('cover', `<div class="slide s-cover s-cover-art" style="background:${A};color:${ink}">` +
       tintImg(coverArt.src, ink, 's-cover-pattern') +
@@ -584,6 +610,7 @@
       `<div class="s-cover-logo">${partnerLogo(p, { tone: logoTone, scale: 46, maxH: 70, fallbackColor: ink })}</div></div>`, 'Cover');
 
     const BR = p.edition.origin === 'brazil';
+    if (p.deck.introFirst) introSlide();
     if (on('mission')) add('mission', `<div class="slide s-split">` +
       `<div class="s-txt"><h2 class="s-h"><em style="color:${A}">#TOGETHERBAND</em><br>OUR MISSION</h2>` +
       `<p><b>${BR ? 'Empowering artisan communities in Brazil and the Amazon Rainforest.' : 'Empowering artisan communities in Brazil, Nepal and the Amazon Rainforest.'}</b> We are a mission-driven company dedicated to empowering economically vulnerable women and Indigenous communities through regenerative design.</p>` +
@@ -620,10 +647,9 @@
         ['tree', `${im.trees} tree${im.trees == 1 ? '' : 's'} planted for every band`, 'r1'], ['coin', `${p.pricing.donationPct}% of proceeds donated to ${esc(p.pricing.beneficiary)}`, 'r2'], ['meal', `${im.meals} meals for families in need with every band`, 'r3']]
         .map(([k, t, pos]) => `<div class="s-imp-pt s-${pos}">${icon(k, A)}<span>${t}</span></div>`).join('') + `${foot()}</div>`, 'Impact of a band');
 
-    if (on('partnership') && (p.deck.intro || '').trim()) add('partnership', `<div class="slide s-split">` +
-      `<div class="s-txt">${hl(p.edition.name.toUpperCase() + ' ×', '#TOGETHERBAND', '')}${(p.deck.intro || '').split(/\n{2,}/).map(x => `<p>${esc(x)}</p>`).join('')}` +
-      (hasGoal(p) ? `<p class="s-sdg"><span style="background:${g.color}">${g.n}</span>Supporting SDG ${g.n}: ${esc(g.name)}</p>` : '') + `</div>` +
-      `<div class="s-feature" style="background:${tint(A, 0.9)}">${bandSVG(hero)}</div>${foot()}</div>`, 'About this partnership');
+
+
+    if (!p.deck.introFirst) introSlide();
 
     if (on('yourband')) add('yourband', `<div class="slide s-section" style="background:${A};color:${ink}"><h2>YOUR BAND,<br>YOUR MESSAGE</h2></div>`, 'Your band, your message');
 

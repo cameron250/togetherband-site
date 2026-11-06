@@ -68,6 +68,7 @@
   }
 
   function syncForm() {
+    $('#f-heroopt').innerHTML = '<option value="">Selected packaging option</option>' + (current.packaging.options || []).map(o => `<option value="${o.id}">${R.esc(o.label || 'Option')}</option>`).join('');
     const ca = $('#f-coverart');
     ca.innerHTML = '<option value="">Plain colour with logos</option>' + (current.artworks || []).map(a => `<option value="${a.id}">Artwork pattern: ${R.esc(a.name)}</option>`).join('');
     $$('[data-bind]').forEach(el => {

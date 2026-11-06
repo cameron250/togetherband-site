@@ -438,6 +438,11 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .s-stack { display: grid; grid-template-rows: 1fr 1fr; gap: .25cqw; }
 .s-photo figcaption { text-transform: none; font-size: .9cqw; }
 .s-feature { display: grid; place-items: center; padding: 4cqw; }
+/* hero: the band resting on its packaging */
+.s-hero { position: relative; }
+.s-hero-band img, .s-hero-band svg { width: 100%; height: auto; display: block; }
+.s-hero-box { position: absolute; left: 50%; top: 46%; width: 30cqw; transform: translate(-50%, -50%); }
+.s-hero-band { position: absolute; left: 50%; top: 60%; width: 31cqw; transform: translate(-50%, -50%); filter: drop-shadow(0 1.2cqw 1.2cqw rgba(0,0,0,.35)); }
 .s-sdg { display: flex; align-items: center; gap: 1cqw; font-weight: 600; font-size: 1.3cqw; }
 .s-sdg span { display: inline-grid; place-items: center; width: 3cqw; height: 3cqw; color: #fff; font: 700 1.6cqw/1 'Oswald', sans-serif; }
 

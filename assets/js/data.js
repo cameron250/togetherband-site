@@ -127,7 +127,7 @@
         impact: { trees: 1, co2: 150, meals: 4 },
         note: 'Excludes delivery and duties.'
       },
-      deck: { slides: defaultSlides(), intro: '', coverArt: '' }
+      deck: { slides: defaultSlides(), intro: '', coverArt: '', introFirst: false, heroOption: '' }
     };
     return deepMerge(base, overrides || {});
   }
