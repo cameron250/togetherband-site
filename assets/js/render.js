@@ -276,6 +276,7 @@
   }
   // Shrink bellyband back text until it fits its half of the band.
   function fitText(root) {
+    if (!root && document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(() => fitText());
     (root || document).querySelectorAll('.pkb-fit').forEach(el => {
       const box = el.closest('.pkb-half');
       if (!box || !box.clientHeight) return;
@@ -406,7 +407,7 @@
         `<div class="pkb-flap pkb-flap-r" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('r')}` +
         `<div class="pkb-half"><div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div></div></div></div>`;
     }
-    return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}">${emb}${sleeve}</div>`;
+    return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}">${side === 'front' ? emb : ''}${sleeve}</div>`;
   }
   function packSide(p, wrapped) {
     const box = p.packaging.box === 'black' ? 'pk-black' : 'pk-white';

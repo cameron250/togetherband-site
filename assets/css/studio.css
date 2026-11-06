@@ -29,6 +29,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--font-body); -webkit-font-smoothing: antialiased; }
 [hidden] { display: none !important; }
 .sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -304,13 +305,14 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .pkb-flap-l { left: 0; width: 56%; }
 .pkb-flap-r { left: 50%; right: 0; box-shadow: -.5cqw 0 .9cqw rgba(0,0,0,.28); border-left: .15cqw solid var(--edge); }
 .pkb-half { position: absolute; top: 0; bottom: 0; left: 0; width: 50cqw; display: flex; align-items: center; justify-content: center; padding: 0 4cqw; }
-.pkb-label { display: flex; flex-direction: column; align-items: center; gap: 2.4cqh; --k: 1; }
+.pkb-label { display: flex; flex-direction: column; align-items: center; gap: 2.2cqw; --k: 1; max-height: none; }
+.pkb-label > * { flex: none; }
 .pkb-h { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: calc(3.3cqw * var(--k, 1)); line-height: 1.18; letter-spacing: .03em; }
 .pkb-h b { font-weight: 700; }
 .pkb-h span { font-weight: 300; }
 .pkb-made, .pkb-url { font-family: 'Work Sans', Arial, sans-serif; font-size: calc(2.4cqw * var(--k, 1)); line-height: 1.35; }
 .pkb-copy { font-family: 'Work Sans', Arial, sans-serif; font-size: calc(1.9cqw * var(--k, 1)); line-height: 1.4; max-width: 38cqw; }
-.pkb-label .pkb-h { font-size: calc(3.1cqw * var(--k, 1)); line-height: 1.12; }
+.pkb-label .pkb-h { font-size: calc(3.1cqw * var(--k, 1)); line-height: 1.15; display: block; }
 .pkb-qrl { gap: 4cqh; }
 .pkb-qrl .qr { width: 19cqw; height: auto; }
 /* artwork lines carried round the back: a lines-only edge strip of the artwork stretched across each end */
