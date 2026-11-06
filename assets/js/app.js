@@ -452,6 +452,7 @@
     const s = deckList[presentIdx];
     $('#presentStage').innerHTML = s ? s.html : '';
     $('#slideCount').textContent = `${presentIdx + 1} / ${deckList.length}`;
+    requestAnimationFrame(() => R.fitText($('#presentStage')));
   }
 
   function printDeck() {
@@ -524,6 +525,7 @@
     const tab = ['packaging', 'deck', 'costs'].includes(t) ? t : 'packaging';
     $$('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== tab; });
     $$('[data-tab]').forEach(a => a.setAttribute('aria-selected', String(a.dataset.tab === tab)));
+    requestAnimationFrame(() => R.fitText(document));
   }
 
   // ---------- wire up ----------
@@ -649,6 +651,7 @@
     syncForm();
     renderAll();
     R.hydrateBands(document);
+    window.addEventListener('resize', () => R.fitText(document));
     // Re-render once web fonts arrive so wordmarks measure correctly.
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleRender);
   }

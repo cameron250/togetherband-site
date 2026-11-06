@@ -273,7 +273,20 @@
     const done = pr && pr.url;
     return `<img class="${cls} tinted${done ? ' ready' : ''}" alt="" src="${done || BLANK}"${style ? ` style="${style}"` : ''}${done ? '' : ` data-tint="${esc(JSON.stringify({ src, color }))}"`}>`;
   }
+  // Shrink bellyband back text until it fits its half of the band.
+  function fitText(root) {
+    (root || document).querySelectorAll('.pkb-fit').forEach(el => {
+      const box = el.closest('.pkb-half');
+      if (!box || !box.clientHeight) return;
+      let k = 1;
+      el.style.setProperty('--k', k);
+      while (k > 0.55 && (el.scrollHeight > box.clientHeight * 0.86 || el.scrollWidth > box.clientWidth * 0.9)) {
+        k -= 0.05; el.style.setProperty('--k', k.toFixed(2));
+      }
+    });
+  }
   function hydrateBands(root) {
+    fitText(root);
     (root || document).querySelectorAll('img[data-tint]').forEach(img => {
       const t = JSON.parse(img.dataset.tint);
       img.removeAttribute('data-tint');
@@ -380,14 +393,17 @@
     } else {
       const g = sdg(p.edition.sdg);
       const made = esc(p.edition.madeIn || '').replace(/\.\s+/g, '.<br>');
+      // The bellyband's two ends overlap and meet in the middle of the back: the right-hand
+      // end sits on top. Text is centred in the left half, the QR code in the right half.
       const carry = L.art && p.packaging.backPattern !== false && L.fit !== 'contain';
-      sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry pk-art' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
-        (carry ? tintImg(L.art, L.ink || '#ffffff', 'pk-artimg pk-artstrip') : '') +
-        (p.packaging.backHeading
-          ? `<div class="pkb-l pkb-custom"><div class="pkb-h"><b>${esc(p.packaging.backHeading).replace(/\n/g, '<br>')}</b></div><div class="pkb-copy">${esc(p.packaging.backCopy || '')}</div></div>`
-          : `<div class="pkb-l"><div class="pkb-h"><b>#TOGETHERBAND</b><br><b>EDITION</b> <span>SUPPORTING</span><br><b>SDG ${g.n}:</b><br><b>${esc(g.name.toUpperCase())}</b></div>` +
-        `<div class="pkb-made">${made}</div></div>`) +
-        `<div class="pkb-r" style="border-color:${ink === '#ffffff' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)'}">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div></div>`;
+      const lines = side => carry ? tintImg(L.art, L.ink || '#ffffff', `pk-artimg pk-artstrip pk-artstrip-${side}`) : '';
+      const left = p.packaging.backHeading
+        ? `<div class="pkb-label pkb-fit"><div class="pkb-h"><b>${esc(p.packaging.backHeading).replace(/\n/g, '<br>')}</b></div><div class="pkb-copy">${esc(p.packaging.backCopy || '')}</div></div>`
+        : `<div class="pkb-label pkb-fit"><div class="pkb-h"><b>#TOGETHERBAND</b><br><b>EDITION</b> <span>SUPPORTING</span><br><b>SDG ${g.n}:</b><br><b>${esc(g.name.toUpperCase())}</b></div><div class="pkb-made">${made}</div></div>`;
+      sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
+        `<div class="pkb-flap pkb-flap-l">${lines('l')}<div class="pkb-half">${left}</div></div>` +
+        `<div class="pkb-flap pkb-flap-r" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('r')}` +
+        `<div class="pkb-half"><div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div></div></div></div>`;
     }
     return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}">${emb}${sleeve}</div>`;
   }
@@ -619,7 +635,7 @@
 
   TB.render = {
     esc, mix, shade, tint, onColor, luma, sdg, money, num, sleeveColor,
-    tbLogo, partnerLogo, qrSVG, look, activeOption, optionCard, tintURL, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
+    tbLogo, partnerLogo, qrSVG, look, activeOption, optionCard, tintURL, fitText, bandSVG, bandDrawing, hydrateBands, photoSpec, variantName, packFace, box3D,
     insertFront, insertBack, qrCard, costRows, costTable, quote, slides, hexToRgb, rgbToHex
   };
 })(window);
