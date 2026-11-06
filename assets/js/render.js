@@ -46,12 +46,25 @@
     if (!os.length) return null;
     return os[Math.max(0, Math.min(os.length - 1, Number(p.packaging.active) || 0))];
   }
+  // Artwork shown on the back of the bellyband in place of the QR code (option.backArt = artwork id).
+  // focus: the motif's horizontal centre and width as fractions of the artwork, so it can be framed.
+  function backArtOf(p, o) {
+    const a = o && o.backArt ? (p.artworks || []).find(x => x.id === o.backArt) : null;
+    return a ? { src: a.src, printSrc: a.printSrc || a.src, cx: (o.backFocus || {}).cx || 0.5, w: (o.backFocus || {}).w || 1 } : null;
+  }
+  function backArtImg(L, hires) {
+    const B = L.backArt;
+    // scale so the motif spans ~84% of the panel width, centred on the motif
+    const scale = (0.84 / B.w * 100).toFixed(2);
+    return `<div class="bk-art">` + tintImg(hires ? B.printSrc : B.src, L.ink || '#ffffff', 'bk-img', `width:${scale}cqw;transform:translate(-${(B.cx * 100).toFixed(2)}%,-50%)`, hires ? 4096 : 1600) + `</div>`;
+  }
   function look(p, opt) {
     const o = opt === undefined ? activeOption(p) : opt;
     if (o) {
       const art = o.art && o.art !== 'logo' ? (p.artworks || []).find(a => a.id === o.art) : null;
       return { sleeve: o.sleeve, ink: o.ink, art: art ? art.src : null, fit: o.fit || 'cover', label: o.label,
-        aspect: art && art.aspect || 16 / 9, overlay: art && o.overlay && o.overlay.src ? o.overlay : null };
+        aspect: art && art.aspect || 16 / 9, overlay: art && o.overlay && o.overlay.src ? o.overlay : null,
+        backArt: backArtOf(p, o) };
     }
     const sc = baseSleeve(p);
     return { sleeve: sc, ink: null, art: null };
@@ -470,7 +483,7 @@
       sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
         `<div class="pkb-flap pkb-flap-l" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('l')}<div class="pkb-half">${left}</div></div>` +
         `<div class="pkb-flap pkb-flap-r">${lines('r')}` +
-        `<div class="pkb-half"><div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div></div></div></div>`;
+        `<div class="pkb-half">${L.backArt ? backArtImg(L) : `<div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div>`}</div></div></div>`;
     }
     return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}" style="${dlVars(p)}">${side === 'front' ? emb : ''}${sleeve}</div>`;
   }
@@ -549,7 +562,8 @@
     const backText = `${svgHeading(head)}<div class="pa-copy">${esc(p.packaging.backCopy || insertCopy(p))}</div>`;
     return `<div class="pa pa-outside" style="background:${sc};color:${ink}">` +
       panel('tape', '') +
-      panel('under', strip('l') + `<div class="pa-center" style="padding-top:${px(4)}">${label(`${qrSVG(p.edition.url, ink)}<div class="pa-url">${esc(p.edition.url)}</div>`, 'pa-qr')}</div>`) +
+      panel('under', strip('l') + (L.backArt ? `<div class="pa-backart" style="top:${px(30)};bottom:${px(31.5)}">${backArtImg(L, hires)}</div>`
+        : `<div class="pa-center" style="padding-top:${px(4)}">${label(`${qrSVG(p.edition.url, ink)}<div class="pa-url">${esc(p.edition.url)}</div>`, 'pa-qr')}</div>`)) +
       panel('sideL', strip('r') + `<div class="pa-center"><div class="pa-side"${art ? ` style="background:${sc}"` : ''}>${esc(sideLabel(p))}</div></div>`) +
       panel('front', frontInner) +
       panel('sideR', strip('l')) +

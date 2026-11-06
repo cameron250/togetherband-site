@@ -401,6 +401,13 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .ov-img { width: 100%; height: auto; display: block; }
 .pa-frontwrap { position: absolute; inset: 0; container-type: size; }
 
+/* artwork in place of the QR on the bellyband back; edges fade into the carried lines behind */
+.bk-art { position: absolute; inset: 0; container-type: size; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent); }
+.bk-img { position: absolute; left: 50%; top: 50%; height: auto; max-width: none; }
+.pa-backart { position: absolute; left: 0; right: 0; }
+
 /* booklet insert */
 .ins { display: grid; grid-template-columns: 1fr 1fr; width: 100%; container-type: inline-size; perspective: 900px; color: #1b1718; }
 .ins-p { position: relative; aspect-ratio: 1; background: #fff; box-shadow: 0 10px 18px -12px rgba(0,0,0,.4), 0 0 0 .1cqw rgba(0,0,0,.06); overflow: hidden; }
