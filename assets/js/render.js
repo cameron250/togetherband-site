@@ -116,7 +116,7 @@
   function metalDefs(id, v) {
     const f = FINISHES[v.finish] || FINISHES.polished;
     let stops = f.stops;
-    if (!stops) { const m = v.metal || '#2457C5'; stops = [tint(m, 0.45), m, tint(m, 0.25), shade(m, 0.45)]; }
+    if (!stops) { const m = v.finish === 'painted' ? (v.rope || '#C41A2E') : (v.metal || '#2457C5'); stops = [tint(m, 0.45), m, tint(m, 0.25), shade(m, 0.45)]; }
     const s = stops.map((c, i) => `<stop offset="${(i / (stops.length - 1)).toFixed(2)}" stop-color="${c}"/>`).join('');
     return `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">${s}</linearGradient>`;
   }
@@ -143,12 +143,14 @@
   function photoSpec(v) {
     const style = v.style === 'braided' ? 'classic' : v.style;
     if (style === 'heart') {
+      if (v.finish === 'painted') return { key: 'heart', clasp: v.rope || '#C41A2E' };
       return { key: 'heart', clasp: v.finish === 'metallic' ? (v.metal || '#2457C5') : v.finish === 'rainbow' ? 'rainbow' : (CLASP_TINT[v.finish] || CLASP_TINT.polished) };
     }
     const gold = v.finish === 'gold';
     const key = `${style === 'mini' ? 'mini' : 'classic'}-${gold ? 'gold' : 'polished'}`;
     let clasp = '';
     if (v.finish === 'metallic') clasp = v.metal || '#2457C5';
+    else if (v.finish === 'painted') clasp = v.rope || '#C41A2E';
     else if (v.finish === 'rainbow') clasp = 'rainbow';
     else if (v.finish === 'rose' || v.finish === 'onyx') clasp = CLASP_TINT[v.finish];
     return { key, clasp };
@@ -290,9 +292,10 @@
     const f = FINISHES[v.finish] || FINISHES.polished;
     return f.title;
   }
+  const shortFinish = v => (v.finish === 'rose' ? 'Rose gold' : (FINISHES[v.finish] || FINISHES.polished).title);
   function variantName(v, p) {
     const st = (STYLES[v.style] || STYLES.classic).label;
-    const fin = v.finish === 'polished' || v.finish === 'gold' ? '' : (FINISHES[v.finish] || {}).label;
+    const fin = v.finish === 'polished' || v.finish === 'gold' ? '' : shortFinish(v);
     return [st, fin, p ? p.edition.name : ''].filter(Boolean).join(' ');
   }
 
@@ -486,11 +489,11 @@
 
     if (on('products')) p.edition.variants.forEach((v, i) => {
       const st = STYLES[v.style].label.toUpperCase();
-      const fin = v.finish === 'polished' || v.finish === 'gold' ? '' : (FINISHES[v.finish].label.toUpperCase() + ' ');
+      const fin = v.finish === 'polished' || v.finish === 'gold' ? '' : (shortFinish(v).toUpperCase() + ' ');
       add('product', `<div class="slide s-product"><div class="s-prod-h" style="color:${A}"><b>${st} ${fin}${ED}</b> <span>#TOGETHERBAND</span><br>` +
         `<b>${v.style === 'heart' ? 'RECYCLED ILLEGAL FIREARM METAL HEART &amp; OCEAN PLASTIC' : esc(finishTitle(v).toUpperCase()) + ' RECYCLED ILLEGAL FIREARM METAL &amp; OCEAN PLASTIC'}</b></div>` +
         `<div class="s-prod-row"><div class="s-prod-c">${packFace(p, 'front')}<span>FRONT</span></div><div class="s-prod-c">${packFace(p, 'back')}<span>BACK</span></div>` +
-        `<div class="s-prod-band">${bandSVG(v)}</div></div><div class="s-prod-sdg">GOAL ${g.n} · ${esc(g.name.toUpperCase())}</div>${foot()}</div>`, `${STYLES[v.style].label} ${FINISHES[v.finish].label}`);
+        `<div class="s-prod-band">${bandSVG(v)}</div></div><div class="s-prod-sdg">GOAL ${g.n} · ${esc(g.name.toUpperCase())}</div>${foot()}</div>`, `${STYLES[v.style].label} ${shortFinish(v)}`);
     });
 
     if (on('unboxing')) add('unboxing', `<div class="slide s-unbox">` +

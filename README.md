@@ -18,7 +18,8 @@ python3 -m http.server 8000   # then visit http://localhost:8000
   new project. "Export image" renders the whole sheet as a PNG to send to the client.
 - **Band variants**: real #TOGETHERBAND product photography, re-dyed in the browser
   to any SDG cord colour (one click dyes every cord in the edition's Goal colour).
-  Clasps: polished and gold are photographed; rose gold, onyx, rainbow and metallic are
+  Clasps: polished and gold are photographed; painted (Humanium Metal lacquered to match
+  the cord), rose gold, onyx, rainbow and metallic are
   tinted from the polished photo. Braided uses the Classic photo until a braided shot is added.
 - **Costs & impact**: volume tiers, packaging cost, donation % and per-band impact
   (trees, CO₂, meals), plus a quick quote for any quantity.

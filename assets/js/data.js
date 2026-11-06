@@ -36,6 +36,7 @@
     rose: { label: 'Rose gold', title: 'Rose gold plated', stops: ['#f8d9cc', '#d29a86', '#f2c6b3', '#a8705d'] },
     onyx: { label: 'Onyx', title: 'Onyx', stops: ['#5b5e63', '#2a2c30', '#45484d', '#151618'] },
     rainbow: { label: 'Rainbow', title: 'Rainbow', stops: ['#E5243B', '#FCC30B', '#56C02B', '#0A97D9', '#A21942'] },
+    painted: { label: 'Painted to match cord', title: 'Painted', stops: null },
     metallic: { label: 'Metallic', title: 'Metallic', stops: null }
   };
 
