@@ -576,7 +576,7 @@
 
   function slides(p) {
     const A = p.brand.deckAccent || '#C41A2E';
-    const ink = onColor(A);
+    const ink = p.brand.deckInk || onColor(A);
     const PN = esc(p.partner.toUpperCase());
     const ED = esc(p.edition.name.toUpperCase());
     const g = sdg(p.edition.sdg);

@@ -84,7 +84,8 @@
         logoTone: 'white',
         logoScale: 70,
         primary: '#C41A2E',
-        deckAccent: '#C41A2E'
+        deckAccent: '#C41A2E',
+        deckInk: ''
       },
       edition: {
         name: 'New Partner',
