@@ -50,13 +50,16 @@
   // focus: the motif's horizontal centre and width as fractions of the artwork, so it can be framed.
   function backArtOf(p, o) {
     const a = o && o.backArt ? (p.artworks || []).find(x => x.id === o.backArt) : null;
-    return a ? { src: a.src, printSrc: a.printSrc || a.src, cx: (o.backFocus || {}).cx || 0.5, w: (o.backFocus || {}).w || 1 } : null;
+    return a ? { src: a.src, printSrc: a.printSrc || a.src, cx: (o.backFocus || {}).cx || 0.5, w: (o.backFocus || {}).w || 1, h: (o.backFocus || {}).h || 0.82 } : null;
   }
-  // Fill the whole back panel at full band height (the same scale as the front), centred on the motif,
-  // so the artwork has no visible edge: its sides fall on the fold and under the overlapping end.
+  // Back artwork at a set share of the band height (backFocus.h, default 0.82), centred on its motif.
+  // A solid backing in the bellyband colour stops the carried lines doubling up behind it, and its
+  // top and bottom fade softly into those lines; the sides fall on the fold and under the overlap.
   function backArtImg(L, hires) {
     const B = L.backArt;
-    return `<div class="bk-art" style="background:${L.sleeve}">` + tintImg(hires ? B.printSrc : B.src, L.ink || '#ffffff', 'bk-img', `height:100cqh;transform:translate(-${(B.cx * 100).toFixed(2)}%,-50%)`, hires ? 4096 : 1600) + `</div>`;
+    const h = (B.h || 0.82) * 100;
+    return `<div class="bk-art"><div class="bk-frame" style="height:${h.toFixed(1)}cqh;background:${L.sleeve};transform:translate(-${(B.cx * 100).toFixed(2)}%,-50%)">` +
+      tintImg(hires ? B.printSrc : B.src, L.ink || '#ffffff', 'bk-img', '', hires ? 4096 : 1600) + `</div></div>`;
   }
   function look(p, opt) {
     const o = opt === undefined ? activeOption(p) : opt;
