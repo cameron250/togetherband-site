@@ -444,7 +444,7 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 .icard-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 4cqw; }
 .icard-qr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6cqw; }
 .icard-qr .qr { width: 52cqw; }
-.icard-url { font-family: 'Oswald', sans-serif; font-size: 4.6cqw; letter-spacing: .06em; text-transform: uppercase; }
+.icard-url { font-family: 'Oswald', sans-serif; font-size: 4.6cqw; line-height: 1.3; letter-spacing: .06em; text-transform: uppercase; text-align: center; max-width: 80%; text-wrap: balance; }
 .pk-fig-card > div { max-width: 240px; }
 .s-card-row { grid-template-columns: 24cqw 24cqw; justify-content: center; gap: 6cqw; margin-top: 7cqw; }
 .s-ub-card { width: 15cqw !important; }
