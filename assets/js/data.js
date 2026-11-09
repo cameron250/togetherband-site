@@ -122,6 +122,7 @@
         // Bellyband dieline, outside face, left to right: glue tape, back (under), side, front, side, back (on top).
         dieline: { tape: 138, backUnder: 433.5, side: 224, front: 945, backTop: 513, height: 410.5 },
         insertQrUrl: '',
+        insertQrLabel: '',
         options: [],
         active: 0
       },

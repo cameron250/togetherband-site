@@ -616,9 +616,11 @@
     return `<div class="icard icard-front"><div class="icard-in"><div class="icard-h">${insertHeading(p)}</div>${insertCopy(p).split(/\n\s*\n/).map(t => `<p class="icard-copy">${esc(t.trim())}</p>`).join('')}</div>` +
       `<div class="icard-foot" style="background:${L.sleeve}"></div></div>`;
   }
+  // Caption printed under the card's QR code: a short label, or the link without its scheme.
+  const insertQrCaption = p => (p.packaging.insertQrLabel || '').trim() || insertUrl(p).replace(/^https?:\/\/(www\.)?/, '');
   function cardBack(p) {
     const u = insertUrl(p);
-    return `<div class="icard icard-back"><div class="icard-qr">${qrSVG(u, '#141414')}<div class="icard-url">${esc(u)}</div></div></div>`;
+    return `<div class="icard icard-back"><div class="icard-qr">${qrSVG(u, '#141414')}<div class="icard-url">${esc(insertQrCaption(p))}</div></div></div>`;
   }
   function insertFront(p) {
     if (isCard(p)) return cardFront(p);
@@ -806,7 +808,7 @@
       `<div class="s-ub-t s-ub-t2"><b>${ED} branded bellyband</b><br>Your artwork on a recyclable bellyband in your brand colours, wrapped around our embossed gift box.</div>` +
       (p.packaging.insert ? `<div class="s-ub-t s-ub-t3"><b>#TOGETHERBAND × ${ED}</b><br>${isCard(p) ? 'A printed card insert carries your message on the front and a QR code on the back.*' : 'A concertina insert unpacks the product, the campaign and your key messages.*'}</div>` : '') +
       (p.packaging.qrCard ? `<div class="s-ub-t s-ub-t4"><b>A direct link to your campaign.</b><br>An optional QR card* points people to ${esc(p.edition.url)}.</div>`
-        : (p.packaging.insert && isCard(p) ? `<div class="s-ub-t s-ub-t4"><b>The back of the card.</b><br>A QR code takes people straight to ${esc(insertUrl(p))}.</div>` : '')) +
+        : (p.packaging.insert && isCard(p) ? `<div class="s-ub-t s-ub-t4"><b>The back of the card.</b><br>A QR code takes people straight to ${esc(insertQrCaption(p))}.</div>` : '')) +
       `<div class="s-note">* Optional packaging elements are available at additional cost.</div>${foot()}</div>`, 'Packaging contents');
 
     const opts = (p.packaging.options || []);
