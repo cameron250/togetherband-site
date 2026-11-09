@@ -613,7 +613,7 @@
   const insertUrl = p => (p.packaging.insertQrUrl || '').trim() || p.edition.url;
   function cardFront(p) {
     const L = look(p);
-    return `<div class="icard icard-front"><div class="icard-in"><div class="icard-h">${insertHeading(p)}</div><p class="icard-copy">${esc(insertCopy(p))}</p></div>` +
+    return `<div class="icard icard-front"><div class="icard-in"><div class="icard-h">${insertHeading(p)}</div>${insertCopy(p).split(/\n\s*\n/).map(t => `<p class="icard-copy">${esc(t.trim())}</p>`).join('')}</div>` +
       `<div class="icard-foot" style="background:${L.sleeve}"></div></div>`;
   }
   function cardBack(p) {

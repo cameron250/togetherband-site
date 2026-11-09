@@ -434,6 +434,7 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
   box-shadow: 0 10px 18px -12px rgba(0,0,0,.4), 0 0 0 .1cqw rgba(0,0,0,.06); }
 .icard-in { position: absolute; inset: 0 0 10cqw; display: flex; flex-direction: column; justify-content: center; gap: 5cqw; padding: 0 11cqw; }
 .icard-h { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 700; font-size: 7.6cqw; line-height: 1.08; text-transform: uppercase; }
+.icard-copy + .icard-copy { margin-top: -2cqw; }
 .icard-copy { margin: 0; font-family: 'Work Sans', Arial, sans-serif; font-size: 4.4cqw; line-height: 1.45; }
 .icard-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 4cqw; }
 .icard-qr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6cqw; }
