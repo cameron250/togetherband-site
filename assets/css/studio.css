@@ -403,16 +403,21 @@ input[type="checkbox"] { accent-color: var(--tb); width: 16px; height: 16px; }
 
 /* artwork in place of the QR on the bellyband back; edges fade into the carried lines behind */
 .bk-art { position: absolute; inset: 0; container-type: size; overflow: hidden; }
-.bk-frame { position: absolute; left: 50%; top: 50%; aspect-ratio: 16 / 9;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent); }
+.bk-frame { position: absolute; left: 50%; top: 50%; aspect-ratio: 16 / 9; }
 .bk-img { display: block; width: 100%; height: 100%; }
+.bk-flip { position: absolute; left: 0; transform: scaleY(-1); }
+.bk-up { bottom: 100%; }
+.bk-down { top: 100%; }
 .pa-backart { position: absolute; left: 0; right: 0; }
 
 /* small logo on the bellyband back in place of the QR */
 .bk-logo, .pa-logo { box-sizing: border-box; justify-content: center; padding: 0; }
 .bk-logo .bk-logoimg, .pa-logo .bk-logoimg { width: 76% !important; }
 .bk-logoimg { display: block; height: auto; }
+
+/* vector logo knocked into the stripes */
+.bk-knock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.bk-wm { display: block; height: auto; overflow: visible; }
 
 /* booklet insert */
 .ins { display: grid; grid-template-columns: 1fr 1fr; width: 100%; container-type: inline-size; perspective: 900px; color: #1b1718; }

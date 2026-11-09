@@ -58,8 +58,19 @@
   function backArtImg(L, hires) {
     const B = L.backArt;
     const h = (B.h || 0.82) * 100;
-    return `<div class="bk-art"><div class="bk-frame" style="height:${h.toFixed(1)}cqh;background:${L.sleeve};transform:translate(-${(B.cx * 100).toFixed(2)}%,-50%)">` +
-      tintImg(hires ? B.printSrc : B.src, L.ink || '#ffffff', 'bk-img', '', hires ? 4096 : 1600) + `</div></div>`;
+    // The artwork is mirrored above and below so its stripes run unbroken to the panel's top and bottom
+    // edges: the panel holds one set of stripes only, with no fade or overlap with the carried lines.
+    const img = cls => tintImg(hires ? B.printSrc : B.src, L.ink || '#ffffff', 'bk-img' + cls, '', hires ? 4096 : 1600);
+    return `<div class="bk-art" style="background:${L.sleeve}"><div class="bk-frame" style="height:${h.toFixed(1)}cqh;transform:translate(-${(B.cx * 100).toFixed(2)}%,-50%)">` +
+      img('') + img(' bk-flip bk-up') + img(' bk-flip bk-down') + `</div></div>`;
+  }
+  /* A vector logo set straight into the carried stripes: filled in the artwork colour, with an outline in the
+     bellyband colour that cuts the stripes cleanly around each letter (no box, stripes stay aligned).
+     v: { viewBox, d, outline } — outline in viewBox units. */
+  function knockLogo(L, width) {
+    const v = L.backLogo.vector;
+    return `<svg class="bk-wm" viewBox="${v.viewBox}" style="width:${width}" aria-label="logo">` +
+      `<path d="${v.d}" fill="${L.ink || '#ffffff'}" stroke="${L.sleeve}" stroke-width="${v.outline || 6}" stroke-linejoin="round" paint-order="stroke fill"/></svg>`;
   }
   function look(p, opt) {
     const o = opt === undefined ? activeOption(p) : opt;
@@ -67,7 +78,7 @@
       const art = o.art && o.art !== 'logo' ? (p.artworks || []).find(a => a.id === o.art) : null;
       return { sleeve: o.sleeve, ink: o.ink, art: art ? art.src : null, fit: o.fit || 'cover', label: o.label,
         aspect: art && art.aspect || 16 / 9, overlay: art && o.overlay && o.overlay.src ? o.overlay : null,
-        backArt: backArtOf(p, o), backLogo: o.backLogo && o.backLogo.src ? o.backLogo : null };
+        backArt: backArtOf(p, o), backLogo: o.backLogo && (o.backLogo.src || o.backLogo.vector) ? o.backLogo : null };
     }
     const sc = baseSleeve(p);
     return { sleeve: sc, ink: null, art: null };
@@ -498,7 +509,7 @@
       sleeve = `<div class="pk-sleeve pk-back${carry ? ' pk-carry' : ''}" style="background:${sc};color:${ink};--sl:${sc}">` +
         `<div class="pkb-flap pkb-flap-l" style="--edge:${ink === '#ffffff' ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.18)'}">${lines('l')}<div class="pkb-half">${left}</div></div>` +
         `<div class="pkb-flap pkb-flap-r">${lines('r')}` +
-        `<div class="pkb-half">${L.backArt ? backArtImg(L) : L.backLogo ? `<div class="pkb-label bk-logo">${tintImg(L.backLogo.src, ink, 'bk-logoimg', `width:${((L.backLogo.w || 0.4) * (1 - dieline(p).seam) * 100).toFixed(2)}cqw`)}</div>` : `<div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div>`}</div></div></div>`;
+        `<div class="pkb-half">${L.backArt ? backArtImg(L) : L.backLogo && L.backLogo.vector ? `<div class="bk-knock">${knockLogo(L, ((L.backLogo.w || 0.7) * (1 - dieline(p).seam) * 100).toFixed(2) + 'cqw')}</div>` : L.backLogo ? `<div class="pkb-label bk-logo">${tintImg(L.backLogo.src, ink, 'bk-logoimg', `width:${((L.backLogo.w || 0.4) * (1 - dieline(p).seam) * 100).toFixed(2)}cqw`)}</div>` : `<div class="pkb-label pkb-qrl">${qrSVG(p.edition.url, ink)}<div class="pkb-url">Find out more at<br>${esc(p.edition.url)}</div></div>`}</div></div></div>`;
     }
     return `<div class="pk ${box}${o.flat ? ' pk-flat' : ''}" style="${dlVars(p)}">${side === 'front' ? emb : ''}${sleeve}</div>`;
   }
@@ -577,7 +588,7 @@
     const backText = `${svgHeading(head)}<div class="pa-copy">${esc(p.packaging.backCopy || insertCopy(p))}</div>`;
     return `<div class="pa pa-outside" style="background:${sc};color:${ink}">` +
       panel('tape', '') +
-      panel('under', strip('l') + (L.backLogo && !L.backArt ? `<div class="pa-center">${label(tintImg(L.backLogo.src, ink, 'bk-logoimg', `width:${px((L.backLogo.w || 0.4) * 433.5)}`, hires ? 3000 : 1600), 'pa-logo')}</div>` : L.backArt ? `<div class="pa-backart" style="top:${px(30)};bottom:${px(31.5)}">${backArtImg(L, hires)}</div>`
+      panel('under', strip('l') + (L.backLogo && L.backLogo.vector && !L.backArt ? `<div class="pa-center">${knockLogo(L, px((L.backLogo.w || 0.7) * 433.5))}</div>` : L.backLogo && !L.backArt ? `<div class="pa-center">${label(tintImg(L.backLogo.src, ink, 'bk-logoimg', `width:${px((L.backLogo.w || 0.4) * 433.5)}`, hires ? 3000 : 1600), 'pa-logo')}</div>` : L.backArt ? `<div class="pa-backart" style="top:${px(30)};bottom:${px(31.5)}">${backArtImg(L, hires)}</div>`
         : `<div class="pa-center" style="padding-top:${px(4)}">${label(`${qrSVG(p.edition.url, ink)}<div class="pa-url">${esc(p.edition.url)}</div>`, 'pa-qr')}</div>`)) +
       panel('sideL', strip('r') + `<div class="pa-center"><div class="pa-side"${art ? ` style="background:${sc}"` : ''}>${esc(sideLabel(p))}</div></div>`) +
       panel('front', frontInner) +
